@@ -1,8 +1,7 @@
 'use client';
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import React, { useState } from 'react';
+import { Type } from 'lucide-react'; // Import icon
 import type { Article } from '~/types/article';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
@@ -10,98 +9,58 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
 import { Copy, Download } from 'lucide-react';
 import ArticleFormatter from '~/lib/article-formatter';
 import { convertJsonToArticle } from '~/lib/utils';
+import { useToast } from '~/hooks/use-toast';
 
-interface ArticleViewerProps {
-  article: Article | JSON;
+interface ArticleViewerPanelProps {
+  articleData: Article | JSON | null;
+  loading: boolean;
 }
 
-const Article = {
-  id: "art_123xyz",
-  metadata: {
-    title: "The Future of Artificial Intelligence",
-    summary: "An exploration of AI's impact on society and technology",
-    keywords: ["AI", "technology", "future", "machine learning"],
-    targetAudience: "tech-savvy professionals",
-    readingTime: 5,
-    wordCount: 1200,
-    language: "en",
-    tone: "informative",
-    style: "professional",
-    seoMetadata: {
-      metaTitle: "The Future of AI: A Comprehensive Overview",
-      metaDescription: "Explore the future implications of AI technology...",
-    },
-    generationParams: {
-      prompt: "Write a professional article about AI's future...",
-      temperature: 0.7,
-      model: "gpt-4",
-      timestamp: "2024-10-25T10:30:00Z"
-    },
-    version: 1
-  },
-  content: [
-    {
-      id: "sec_1",
-      type: "heading",
-      content: "The Future of Artificial Intelligence",
-      metadata: { level: 1 }
-    },
-    {
-      id: "sec_2",
-      type: "paragraph",
-      content: "Artificial Intelligence has become an integral part of our daily lives..."
-    },
-    {
-      id: "sec_3",
-      type: "heading",
-      content: "Current State of AI",
-      metadata: { level: 2 }
-    },
-    {
-      id: "sec_4",
-      type: "list",
-      content: "Key developments in AI",
-      metadata: { listType: "bullet" },
-      children: [
-        { id: "item_1", type: "list", content: "Machine Learning advancements" },
-        { id: "item_2", type: "list", content: "Natural Language Processing" }
-      ]
-    },
-    {
-      id: "sec_5",
-      type: "quote",
-      content: "AI is not just transforming technology; it's reshaping society itself.",
-      metadata: {
-        citations: [{
-          id: "cite_1",
-          text: "AI Impact Report 2024",
-          type: "article",
-          author: "Dr. Jane Smith",
-          date: "2024"
-        }]
-      }
-    }
-  ],
-  created_at: "2024-10-25T10:30:00Z",
-  updated_at: "2024-10-25T10:30:00Z"
-};
-
-export default function ArticleViewer({ article }: ArticleViewerProps) {
+export default function ArticleViewerPanel({ articleData, loading }: ArticleViewerPanelProps) {
   const [viewMode, setViewMode] = useState<'rendered' | 'markdown' | 'metadata'>('rendered');
-  article = convertJsonToArticle(article);
+  const { toast } = useToast();
+
+  if (!articleData) {
+    return (
+      <Card className="w-full h-full flex flex-col justify-center items-center text-center">
+        <Type className="w-12 h-12 text-gray-400 mb-4" />
+        <h2 className="text-xl font-medium text-gray-600 mb-2">Enter a topic to get started</h2>
+        <p className="text-gray-500">Your generated article will appear here</p>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card className="w-full h-full flex flex-col justify-center items-center text-center animate-fade-in px-8">
+        <Type className="w-12 h-12 text-gray-400 mb-4 animate-pulse" />
+        <h2 className="text-xl font-medium text-gray-600 mb-2 animate-fade-in">
+          Generating your article...
+        </h2>
+        <p className="text-gray-500 animate-fade-in delay-150">
+          Please wait while your article is being generated
+        </p>
+        <p className="text-gray-500 animate-fade-in delay-300">
+          This may take a few minutes depending on the length of your article
+        </p>
+      </Card>
+    );
+  }
+
+  const article = convertJsonToArticle(articleData);
   const formatter = new ArticleFormatter(article);
 
-  const copyToClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    // You might want to add a toast notification here
+  const handleCopyMarkdown = async () => {
+    await navigator.clipboard.writeText(formatter.toMarkdown());
+    toast({ title: 'Copied to Clipboard', description: 'Markdown content has been copied.' });
   };
 
-  const downloadMarkdown = () => {
+  const handleDownloadMarkdown = () => {
     const blob = new Blob([formatter.toMarkdown()], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${Article.metadata.title.toLowerCase().replace(/\s+/g, '-')}.md`;
+    a.download = `${article.metadata.title.toLowerCase().replace(/\s+/g, '-')}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -147,23 +106,24 @@ export default function ArticleViewer({ article }: ArticleViewerProps) {
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>{article.metadata.title}</CardTitle>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>{article.metadata.readingTime} min read</span>
-          <span>•</span>
-          <span>{article.metadata.wordCount} words</span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
+    <Card className="w-full h-full overflow-auto">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
+        <CardHeader className='flex flex-row justify-between border-b-[1px]'>
+          <div className='flex flex-col'>
+            <CardTitle>{article.metadata.title}</CardTitle>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>{article.metadata.readingTime} min read</span>
+              <span>•</span>
+              <span>{article.metadata.wordCount} words</span>
+            </div>
+          </div>
           <TabsList className="mb-4">
             <TabsTrigger value="rendered">Rendered</TabsTrigger>
             <TabsTrigger value="markdown">Markdown</TabsTrigger>
             <TabsTrigger value="metadata">Metadata</TabsTrigger>
           </TabsList>
-
+        </CardHeader>
+        <CardContent>
           <TabsContent value="rendered">
             <div className="prose max-w-none">
               {renderContent()}
@@ -176,7 +136,7 @@ export default function ArticleViewer({ article }: ArticleViewerProps) {
                 variant="outline"
                 size="sm"
                 className="absolute right-0 top-0 m-2"
-                onClick={() => copyToClipboard(formatter.toMarkdown())}
+                onClick={handleCopyMarkdown}
               >
                 <Copy className="w-4 h-4 mr-2" />
                 Copy
@@ -185,7 +145,7 @@ export default function ArticleViewer({ article }: ArticleViewerProps) {
                 variant="outline"
                 size="sm"
                 className="absolute right-20 top-0 m-2"
-                onClick={downloadMarkdown}
+                onClick={handleDownloadMarkdown}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download
@@ -201,8 +161,8 @@ export default function ArticleViewer({ article }: ArticleViewerProps) {
               <code>{JSON.stringify(article.metadata, null, 2)}</code>
             </pre>
           </TabsContent>
-        </Tabs>
-      </CardContent>
+        </CardContent>
+      </Tabs>
     </Card>
-  )
+  );
 }
