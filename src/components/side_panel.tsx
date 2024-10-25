@@ -158,7 +158,7 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
             max={2000}
             step={100}
             value={[maxLength]}
-            onValueChange={(value) => setMaxLength(value[0])}
+            onValueChange={(value) => setMaxLength(value.at(0)!)}
           />
           <div className="flex justify-between text-sm text-gray-500">
             <span>100</span>

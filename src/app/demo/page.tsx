@@ -28,7 +28,7 @@ const Playground = () => {
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={75}>
-            <ArticleViewer articleData={article} loading={loading} />
+            <ArticleViewer article={article} loading={loading} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
@@ -43,7 +43,7 @@ const Playground = () => {
             <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} />
           </TabsContent>
           <TabsContent value="viewer" className="h-[calc(100%-4rem)] overflow-y-auto">
-            <ArticleViewer articleData={article} loading={loading} />
+            <ArticleViewer article={article} loading={loading} />
           </TabsContent>
         </Tabs>
       </div>

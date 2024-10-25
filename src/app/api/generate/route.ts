@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   }
 }
 
-export const schema = z.object({
+const schema = z.object({
   metadata: z.object({
     title: z.string().describe('The title of the article.'),
     summary: z.string().describe('A brief summary of the article.'),

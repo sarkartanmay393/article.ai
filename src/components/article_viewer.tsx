@@ -8,15 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
 import { Copy, Download } from 'lucide-react';
 import ArticleFormatter from '~/lib/article-formatter';
-import { convertJsonToArticle } from '~/lib/utils';
 import { useToast } from '~/hooks/use-toast';
 
 interface ArticleViewerPanelProps {
-  articleData: Article | JSON | null;
+  article: Article | null;
   loading: boolean;
 }
 
-export default function ArticleViewerPanel({ articleData, loading }: ArticleViewerPanelProps) {
+export default function ArticleViewerPanel({ article, loading }: ArticleViewerPanelProps) {
   const [viewMode, setViewMode] = useState<'rendered' | 'markdown' | 'metadata'>('rendered');
   const { toast } = useToast();
 
@@ -37,7 +36,7 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
     );
   }
 
-  if (!articleData) {
+  if (!article) {
     return (
       <Card className="w-full h-full flex flex-col justify-center items-center text-center">
         <Type className="w-12 h-12 text-gray-400 mb-4" />
@@ -47,7 +46,6 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
     );
   }
 
-  const article = convertJsonToArticle(articleData);
   const formatter = new ArticleFormatter(article);
 
   const handleCopyMarkdown = async () => {
@@ -60,7 +58,7 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${article.metadata.title.toLowerCase().replace(/\s+/g, '-')}.md`;
+    a.download = `${article?.metadata.title.toLowerCase().replace(/\s+/g, '-')}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -68,10 +66,10 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
   };
 
   const renderContent = () => {
-    return article.content.map((section) => {
+    return article?.content.map((section) => {
       switch (section.type) {
         case 'heading':
-          const HeadingTag = `h${section.metadata?.level || 1}` as keyof JSX.IntrinsicElements;
+          const HeadingTag = `h${section.metadata?.level ?? 1}` as keyof JSX.IntrinsicElements;
           return <HeadingTag key={section.id} className="font-bold my-4">{section.content}</HeadingTag>;
 
         case 'paragraph':
@@ -158,7 +156,7 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
 
           <TabsContent value="metadata">
             <pre className="bg-gray-50 p-4 rounded-lg overflow-auto">
-              <code>{JSON.stringify(article.metadata, null, 2)}</code>
+              <code>{JSON.stringify(article?.metadata, null, 2)}</code>
             </pre>
           </TabsContent>
         </CardContent>
