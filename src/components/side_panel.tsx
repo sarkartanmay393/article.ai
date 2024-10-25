@@ -74,8 +74,8 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
         return;
       }
 
-      const data = await resp.json() as JSON;
-      setArticle(convertJsonToArticle(data));
+      const data = await resp.json() as { article: unknown };
+      setArticle(convertJsonToArticle(data.article));
       clearAllInput();
       
       toast({

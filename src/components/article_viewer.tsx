@@ -20,16 +20,6 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
   const [viewMode, setViewMode] = useState<'rendered' | 'markdown' | 'metadata'>('rendered');
   const { toast } = useToast();
 
-  if (!articleData) {
-    return (
-      <Card className="w-full h-full flex flex-col justify-center items-center text-center">
-        <Type className="w-12 h-12 text-gray-400 mb-4" />
-        <h2 className="text-xl font-medium text-gray-600 mb-2">Enter a topic to get started</h2>
-        <p className="text-gray-500">Your generated article will appear here</p>
-      </Card>
-    );
-  }
-
   if (loading) {
     return (
       <Card className="w-full h-full flex flex-col justify-center items-center text-center animate-fade-in px-8">
@@ -37,12 +27,22 @@ export default function ArticleViewerPanel({ articleData, loading }: ArticleView
         <h2 className="text-xl font-medium text-gray-600 mb-2 animate-fade-in">
           Generating your article...
         </h2>
-        <p className="text-gray-500 animate-fade-in delay-150">
+        <p className="text-gray-500">
           Please wait while your article is being generated
         </p>
-        <p className="text-gray-500 animate-fade-in delay-300">
+        <p className="text-gray-500">
           This may take a few minutes depending on the length of your article
         </p>
+      </Card>
+    );
+  }
+
+  if (!articleData) {
+    return (
+      <Card className="w-full h-full flex flex-col justify-center items-center text-center">
+        <Type className="w-12 h-12 text-gray-400 mb-4" />
+        <h2 className="text-xl font-medium text-gray-600 mb-2">Enter a topic to get started</h2>
+        <p className="text-gray-500">Your generated article will appear here</p>
       </Card>
     );
   }
