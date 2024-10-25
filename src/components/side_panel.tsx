@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client';
 
 import { useState } from 'react';
@@ -11,6 +12,7 @@ import type { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from '~/hooks/use-toast';
 import { Loader2Icon, Wand2 } from 'lucide-react';
 import type { Article } from '~/types/article';
+import { convertJsonToArticle } from '~/lib/utils';
 
 type SidePanelProps = {
   setArticle: (article: Article | null) => void;
@@ -29,22 +31,67 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
 
   const { toast } = useToast();
 
-  const handleGenerateArticle = () => {
-    if (!topic) {
-      toast({
-        title: "Missing Topic",
-        description: "Please enter a topic before generating the article.",
-      });
-      return;
-    }
-    setLoading(true);
+  const clearAllInput = () => {
+    setTone('');
+    setStyle('Professional');
+    setTone('Neutral');
+    setMaxLength(500);
+    setIncludeCitations(false);
+    setSeoOptimization(false);
+    setFactChecking(false);
+  }
 
-    setArticle({} as Article);
-    toast({
-      title: "Article Generated",
-      description: `Your article with style "${style}" and tone "${tone}" has been generated!`,
-    });
-    setLoading(false);
+  const handleGenerateArticle = async () => {
+    try {
+      if (!topic) {
+        toast({
+          title: "Missing Topic",
+          description: "Please enter a topic before generating the article.",
+        });
+        return;
+      }
+
+      setLoading(true);
+
+      const resp = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic,
+          tone,
+          style,
+          maxLength,
+        }),
+      });
+
+      if (!resp.ok) {
+        toast({
+          title: "Failed to Generate Article",
+          description: resp.statusText,
+        });
+        return;
+      }
+
+      const data = await resp.json() as JSON;
+      setArticle(convertJsonToArticle(data));
+      clearAllInput();
+      
+      toast({
+        title: "Article Generated",
+        description: `Your article with style "${style}" and tone "${tone}" has been generated!`,
+      });
+
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Failed to Generate Article",
+        description: "An error occurred while generating the article. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
