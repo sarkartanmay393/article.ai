@@ -23,6 +23,7 @@ export const env = createEnv({
     // ),
     // DISCORD_CLIENT_ID: z.string(),
     // DISCORD_CLIENT_SECRET: z.string(),
+    OPENAI_API_KEY: z.string(),
   },
 
   /**
@@ -40,6 +41,7 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     // NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     // NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     // DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
