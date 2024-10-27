@@ -1,21 +1,28 @@
+/* eslint-disable no-var */
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+/* eslint-disable @typescript-eslint/dot-notation */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
-import { Type } from 'lucide-react'; // Import icon
-import type { Article } from '~/types/article';
-import { Button } from '~/components/ui/button';
+import { Copy, Download, Type } from 'lucide-react'; // Import icon
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
-import { Copy, Download } from 'lucide-react';
-import ArticleFormatter from '~/lib/article-formatter';
 import { useToast } from '~/hooks/use-toast';
+import { Button } from './ui/button';
+import type { ArticleMetadata } from '~/types/article';
+import MarkdownPreviewer from './markdown_previewer';
 
 interface ArticleViewerPanelProps {
-  article: Article | null;
+  article: string;
   loading: boolean;
+  metadata: string;
 }
 
-export default function ArticleViewerPanel({ article, loading }: ArticleViewerPanelProps) {
+export default function ArticleViewerPanel({ article, loading, metadata: metadataString }: ArticleViewerPanelProps) {
   const [viewMode, setViewMode] = useState<'rendered' | 'markdown' | 'metadata'>('rendered');
   const { toast } = useToast();
 
@@ -46,61 +53,29 @@ export default function ArticleViewerPanel({ article, loading }: ArticleViewerPa
     );
   }
 
-  const formatter = new ArticleFormatter(article);
+  let metadata: ArticleMetadata | null = null;
+
+  try {
+    metadata = JSON.parse(metadataString) as ArticleMetadata;
+  } catch (error) {
+    console.error(error);
+  }
 
   const handleCopyMarkdown = async () => {
-    await navigator.clipboard.writeText(formatter.toMarkdown());
+    await navigator.clipboard.writeText(article.slice(1, article.length-1));
     toast({ title: 'Copied to Clipboard', description: 'Markdown content has been copied.' });
   };
 
   const handleDownloadMarkdown = () => {
-    const blob = new Blob([formatter.toMarkdown()], { type: 'text/markdown' });
+    const blob = new Blob([article.slice(1, article.length-1).replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n')], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${article?.metadata.title.toLowerCase().replace(/\s+/g, '-')}.md`;
+    a.download = `${(metadata?.title ?? 'untitled').toLowerCase().replace(/\s+/g, '-')}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const renderContent = () => {
-    return article?.content.map((section) => {
-      switch (section.type) {
-        case 'heading':
-          const HeadingTag = `h${section.metadata?.level ?? 1}` as keyof JSX.IntrinsicElements;
-          return <HeadingTag key={section.id} className="font-bold my-4">{section.content}</HeadingTag>;
-
-        case 'paragraph':
-          return <p key={section.id} className="my-4 leading-relaxed">{section.content}</p>;
-
-        case 'list':
-          const ListTag = section.metadata?.listType === 'numbered' ? 'ol' : 'ul';
-          return (
-            <ListTag key={section.id} className="my-4 ml-6">
-              {section.children?.map(item => (
-                <li key={item.id} className="my-1">{item.content}</li>
-              ))}
-            </ListTag>
-          );
-
-        case 'quote':
-          return (
-            <blockquote key={section.id} className="border-l-4 border-gray-300 pl-4 my-4 italic">
-              {section.content}
-              {section.metadata?.citations?.map(citation => (
-                <cite key={citation.id} className="block text-sm text-gray-600 mt-2">
-                  — {citation.author}, {citation.date}
-                </cite>
-              ))}
-            </blockquote>
-          );
-
-        default:
-          return <div key={section.id}>{section.content}</div>;
-      }
-    });
   };
 
   return (
@@ -108,11 +83,11 @@ export default function ArticleViewerPanel({ article, loading }: ArticleViewerPa
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
         <CardHeader className='flex flex-row justify-between border-b-[1px]'>
           <div className='flex flex-col'>
-            <CardTitle>{article.metadata.title}</CardTitle>
+            <CardTitle>{metadata?.title ?? 'untitled'}</CardTitle>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>{article.metadata.readingTime} min read</span>
+              <span>{metadata?.readingTime ?? -1} min read</span>
               <span>•</span>
-              <span>{article.metadata.wordCount} words</span>
+              <span>{metadata?.wordCount ?? -1} words</span>
             </div>
           </div>
           <TabsList className="mb-4">
@@ -124,7 +99,7 @@ export default function ArticleViewerPanel({ article, loading }: ArticleViewerPa
         <CardContent>
           <TabsContent value="rendered">
             <div className="prose max-w-none">
-              {renderContent()}
+              <MarkdownPreviewer markdownString={article.slice(1, article.length-1).replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n')} />
             </div>
           </TabsContent>
 
@@ -149,14 +124,14 @@ export default function ArticleViewerPanel({ article, loading }: ArticleViewerPa
                 Download
               </Button>
               <pre className="bg-gray-50 p-4 rounded-lg mt-10 overflow-auto">
-                <code>{formatter.toMarkdown()}</code>
+                <code>{article.slice(1, article.length-1).replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n')}</code>
               </pre>
             </div>
           </TabsContent>
 
           <TabsContent value="metadata">
             <pre className="bg-gray-50 p-4 rounded-lg overflow-auto">
-              <code>{JSON.stringify(article?.metadata, null, 2)}</code>
+              <code>{JSON.stringify(metadata, null, 2)}</code>
             </pre>
           </TabsContent>
         </CardContent>

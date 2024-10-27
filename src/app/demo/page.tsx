@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import SidePanel from '~/components/side_panel';
 import ArticleViewer from '~/components/article_viewer';
-import type { Article } from '~/types/article';
 
 import {
   ResizableHandle,
@@ -14,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 
 const Playground = () => {
   const [loading, setLoading] = useState(false);
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState('');
+  const [metadata, setMetadata] = useState('');
   
   return (
     <div className="flex h-screen bg-gray-50">
@@ -24,11 +24,11 @@ const Playground = () => {
           className="rounded-lg border w-full"
         >
           <ResizablePanel defaultSize={25} maxSize={30}>
-            <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} />
+            <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} setMetadata={setMetadata} />
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={75}>
-            <ArticleViewer article={article} loading={loading} />
+            <ArticleViewer article={article} loading={loading} metadata={metadata} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
@@ -40,10 +40,10 @@ const Playground = () => {
             <TabsTrigger value="viewer" className="w-full">Viewer</TabsTrigger>
           </TabsList>
           <TabsContent value="panel" className="h-[calc(100%-4rem)] overflow-y-auto">
-            <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} />
+            <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} setMetadata={setMetadata} />
           </TabsContent>
           <TabsContent value="viewer" className="h-[calc(100%-4rem)] overflow-y-auto">
-            <ArticleViewer article={article} loading={loading} />
+            <ArticleViewer article={article} loading={loading} metadata={metadata} />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client';
 
@@ -11,16 +15,18 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from '~/hooks/use-toast';
 import { Loader2Icon, Wand2 } from 'lucide-react';
-import type { Article } from '~/types/article';
-import { convertJsonToArticle } from '~/lib/utils';
+import { readStreamableValue } from 'ai/rsc';
+import { generate } from '~/lib/actions';
 
 type SidePanelProps = {
-  setArticle: (article: Article | null) => void;
+  setArticle: any;
+  // setArticle: (article: Article | null) => void;
   setLoading: (loading: boolean) => void;
   loading: boolean;
+  setMetadata: any;
 }
 
-export default function SidePanel({ setArticle, setLoading, loading }: SidePanelProps) {
+export default function SidePanel({ setArticle, setLoading, loading, setMetadata }: SidePanelProps) {
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('Professional');
   const [tone, setTone] = useState('Neutral');
@@ -28,6 +34,7 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
   const [includeCitations, setIncludeCitations] = useState<CheckedState>(false);
   const [seoOptimization, setSeoOptimization] = useState<CheckedState>(false);
   const [factChecking, setFactChecking] = useState<CheckedState>(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const { toast } = useToast();
 
@@ -51,33 +58,36 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
         return;
       }
 
-      setLoading(true);
+        setLoading(true);
 
-      const resp = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          topic,
-          tone,
-          style,
-          maxLength,
-        }),
-      });
+      const { object } = await generate({
+        tone,
+        style,
+        maxLength,
+        topic,
+      })
 
-      if (!resp.ok) {
-        toast({
-          title: "Failed to Generate Article",
-          description: resp.statusText,
-        });
-        return;
+      let alreadyLoading = true;
+
+      for await (const partialObject of readStreamableValue(object)) {
+        if (partialObject?.metadata) {
+          setMetadata(
+            JSON.stringify((partialObject as any).metadata, null, 2),
+          );
+        }
+        if (partialObject?.content) {
+          if (alreadyLoading) {
+            setLoading(false);
+            alreadyLoading = false;
+          }
+          setArticle(
+            JSON.stringify((partialObject as any).content, null, 2),
+          );
+        }
       }
 
-      const data = await resp.json() as { article: unknown };
-      setArticle(convertJsonToArticle(data.article));
       clearAllInput();
-      
+
       toast({
         title: "Article Generated",
         description: `Your article with style "${style}" and tone "${tone}" has been generated!`,
@@ -90,7 +100,7 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
         description: "An error occurred while generating the article. Please try again.",
       });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -151,15 +161,24 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
         {/* Length Slider */}
         <div className="space-y-2">
           <Label>Maximum Length</Label>
-          <Slider
-            disabled={loading}
-            defaultValue={[500]}
-            min={100}
-            max={2000}
-            step={100}
-            value={[maxLength]}
-            onValueChange={(value) => setMaxLength(value.at(0)!)}
-          />
+          <div className="relative">
+            <Slider
+              disabled={loading}
+              defaultValue={[500]}
+              min={100}
+              max={2000}
+              step={10}
+              value={[maxLength]}
+              onValueChange={(value) => setMaxLength(value.at(0)!)}
+              onMouseEnter={() => setShowTooltip(true)} 
+              onMouseLeave={() => setShowTooltip(false)}
+            />
+            {showTooltip && (
+              <div className="absolute top-[-40px] left-2/4 transform bg-gray-600 text-white text-sm rounded px-2 py-1">
+                {maxLength} words
+              </div>
+            )}
+          </div>
           <div className="flex justify-between text-sm text-gray-500">
             <span>100</span>
             <span>2000 words</span>
@@ -167,7 +186,7 @@ export default function SidePanel({ setArticle, setLoading, loading }: SidePanel
         </div>
 
         {/* Advanced Settings */}
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label>Advanced Settings</Label>
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
