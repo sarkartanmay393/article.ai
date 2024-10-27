@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Download, Type } from 'lucide-react'; // Import icon
+import { Code, Copy, Download, Eye, Info, Type } from 'lucide-react'; // Import icon
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
 import { useToast } from '~/hooks/use-toast';
@@ -91,10 +91,10 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
               <span>{metadata?.wordCount ?? -1} words</span>
             </div>
           </div>
-          <TabsList className="mb-4">
-            <TabsTrigger value="rendered">Rendered</TabsTrigger>
-            <TabsTrigger value="markdown">Markdown</TabsTrigger>
-            <TabsTrigger value="metadata">Metadata</TabsTrigger>
+          <TabsList className="mb-0">
+            <TabsTrigger value="rendered"><Eye className='w-4 h-4 sm:mr-2' /> <span className='hidden md:inline'>Rendered</span></TabsTrigger>
+            <TabsTrigger value="markdown"><Code className='w-4 h-4 sm:mr-2' /> <span className='hidden md:inline'>Markdown</span></TabsTrigger>
+            <TabsTrigger value="metadata"><Info className='w-4 h-4 sm:mr-2' /> <span className='hidden md:inline'>Metadata</span></TabsTrigger>
           </TabsList>
         </CardHeader>
         <CardContent>
