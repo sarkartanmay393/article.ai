@@ -22,11 +22,11 @@ export default function Homepage() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <form action={handleGithubLogin}>
-            <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-1 transition-all hover:scale-105 focus:ring focus:ring-purple-300">
+          <Button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-1 transition-all hover:scale-105 focus:ring focus:ring-purple-300" asChild>
+            <Link href="/demo">
               Try it now!
-            </Button>
-          </form>
+            </Link>
+          </Button>
         </CardFooter>
       </Card>
 
