@@ -7,6 +7,7 @@ import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
 import { articleSchema } from './schema';
 import { signIn, signOut } from './server/auth';
+import { redirect } from 'next/navigation';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -44,7 +45,7 @@ export async function generate({ topic, tone, style, maxLength }: { topic: strin
 export const handleGithubLogin = async () => {
   'use server';
   try {
-    const { error } = await signIn("github");
+    const { error } = await signIn("github", { redirectTo: '/demo' });
     if (error) throw error as Error;
   } catch (error) {
     console.error(error);
@@ -59,6 +60,7 @@ export const handleGithubLogout = async () => {
       redirectTo: '/',
     });
     if (error) throw error as Error;
+    return redirect('/');
   } catch (error) {
     console.error(error);
   }

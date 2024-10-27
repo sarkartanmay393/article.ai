@@ -30,6 +30,7 @@ export const env = createEnv({
     AUTH_SECRET: z.string(),
     AUTH_GITHUB_ID: z.string(),
     AUTH_GITHUB_SECRET: z.string(),
+    NEXTAUTH_URL: z.string(),
   },
 
   /**
@@ -50,7 +51,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     // NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    // NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     // DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     // DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,

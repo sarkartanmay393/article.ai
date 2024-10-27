@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import RetroGrid from "~/components/ui/retro-grid";
+import { handleGithubLogin } from "~/lib/actions";
 
 export default function Homepage() {
   return (
@@ -21,11 +22,11 @@ export default function Homepage() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-1 transition-all hover:scale-105 focus:ring focus:ring-purple-300" asChild>
-            <Link href="/demo">
+          <form action={handleGithubLogin}>
+            <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-1 transition-all hover:scale-105 focus:ring focus:ring-purple-300">
               Try it now!
-            </Link>
-          </Button>
+            </Button>
+          </form>
         </CardFooter>
       </Card>
 

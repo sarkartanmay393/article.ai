@@ -1,20 +1,15 @@
-import { handleGithubLogin } from '~/lib/actions';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { Button } from "~/components/ui/button";
-import { Card, CardFooter, CardHeader } from "~/components/ui/card";
 import { auth } from '~/lib/server/auth';
 import { AppSidebar } from '~/components/side_bar';
-import { SidebarTrigger } from '~/components/ui/sidebar';
-import { DotPattern } from '~/components/ui/dot-pattern';
-import { cn } from '~/lib/utils';
+import { redirect } from 'next/navigation';
 
 export default async function PlaygroundLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  // const session = await auth();
+  // if (!session) return redirect('/auth');
 
   return (
     <div className="flex w-screen h-screen">
       <AppSidebar />
-      {!session ?
+      {/* {!session ?
         <div className="w-full h-full flex justify-center items-center pt-0.5">
           <Card className="w-md h-md">
             <CardHeader>
@@ -42,11 +37,11 @@ export default async function PlaygroundLayout({ children }: { children: React.R
               "[mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)] ",
             )}
           />
-        </div> :
-        <div className="w-full h-full">
-          {children}
-        </div>
-      }
+        </div> : */}
+      <div className="w-full h-full">
+        {children}
+      </div>
+      {/* } */}
     </div>
   )
 }
