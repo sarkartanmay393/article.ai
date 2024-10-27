@@ -18,3 +18,12 @@ export const logAiThings = (thing: any) => {
     console.error(error);
   }
 };
+
+export function addSpacesBetweenWords(str: string): string {
+  // Use a regular expression to insert a space before each uppercase letter
+  // and trim any leading/trailing whitespace
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase letters
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2') // Handle cases like 'XMLHttpRequest'
+    .trim();
+}

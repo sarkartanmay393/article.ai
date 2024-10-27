@@ -64,3 +64,8 @@ export const articleSchema = z.object({
 export type PartialArticle = DeepPartial<typeof articleSchema>;
 
 export type Article = z.infer<typeof articleSchema>;
+
+
+export type KeyPair = {
+  [key: string]: string | null | undefined | KeyPair | number | string[];
+};

@@ -13,12 +13,12 @@ export type ArticleMetadata = {
     metaDescription?: string;
     canonicalUrl?: string;
   };
-  generationParams?: {
-    prompt?: string;
-    temperature?: number;
-    model?: string;
-    timestamp: string;
-  };
+  // generationParams?: {
+  //   prompt?: string;
+  //   temperature?: number;
+  //   model?: string;
+  //   timestamp: string;
+  // };
   version?: number;
 };
 

@@ -15,6 +15,7 @@ import { useToast } from '~/hooks/use-toast';
 import { Button } from './ui/button';
 import type { ArticleMetadata } from '~/types/article';
 import MarkdownPreviewer from './markdown_previewer';
+import Metadata from './metadata';
 
 interface ArticleViewerPanelProps {
   article: string;
@@ -128,11 +129,8 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
               </pre>
             </div>
           </TabsContent>
-
           <TabsContent value="metadata">
-            <pre className="bg-gray-50 p-4 rounded-lg overflow-auto">
-              <code>{JSON.stringify(metadata, null, 2)}</code>
-            </pre>
+            <Metadata metadata={metadata} />
           </TabsContent>
         </CardContent>
       </Tabs>
