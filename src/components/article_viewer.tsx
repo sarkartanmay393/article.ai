@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/components/ui/tabs';
 import { useToast } from '~/hooks/use-toast';
 import { Button } from './ui/button';
-import type { ArticleMetadata } from '~/types/article';
+import type { ArticleMetadata } from '~/lib/types/article';
 import MarkdownPreviewer from './markdown_previewer';
 import Metadata from './metadata';
 

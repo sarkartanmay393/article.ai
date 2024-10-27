@@ -2,8 +2,8 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { ToastProvider, ToastViewport } from "~/components/ui/toast";
-import { Toaster } from "~/components/ui/toaster";
+import Providers from "./providers";
+// import { getServerAuthSession } from "~/lib/server/auth";
 
 export const metadata: Metadata = {
   title: "article.ai",
@@ -11,17 +11,17 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // const session = await getServerAuthSession();
+
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body className="">
-        <ToastProvider>
+        <Providers>
           {children}
-          <ToastViewport />
-          <Toaster />
-        </ToastProvider>
+        </Providers>
       </body>
     </html>
   );

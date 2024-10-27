@@ -10,14 +10,16 @@ import {
   ResizablePanelGroup,
 } from "~/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { SidebarTrigger } from '~/components/ui/sidebar';
 
 const Playground = () => {
   const [loading, setLoading] = useState(false);
   const [article, setArticle] = useState('');
   const [metadata, setMetadata] = useState('');
-  
+
   return (
-    <div className="flex h-screen p-1">
+    <div className="relative flex h-full p-1">
+      <SidebarTrigger className={`absolute bottom-2 left-2 z-10`} />
       <div className="hidden md:flex w-full h-full">
         <ResizablePanelGroup
           direction="horizontal"

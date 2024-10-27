@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import RetroGrid from "~/components/ui/retro-grid";
 
 export default function Homepage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-      <Card className="w-[350px] shadow-2xl transition-transform hover:scale-105">
+    <div className="min-h-screen w-full flex items-center justify-center">
+      <Card className="w-[350px] shadow-2xl transition-transform hover:scale-105 bg-white z-[100]">
         <CardHeader>
           <CardTitle className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 animate-fade-in">
             article.ai
@@ -27,6 +28,8 @@ export default function Homepage() {
           </Button>
         </CardFooter>
       </Card>
+
+      <RetroGrid />
     </div>
   );
 }

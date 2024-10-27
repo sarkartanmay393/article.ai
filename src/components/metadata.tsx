@@ -1,4 +1,4 @@
-import type { ArticleMetadata } from "~/types/article";
+import type { ArticleMetadata } from "~/lib/types/article";
 import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
 import { addSpacesBetweenWords } from "~/lib/utils";

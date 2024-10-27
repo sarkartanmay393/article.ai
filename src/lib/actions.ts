@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 'use server';
 
 import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
 import { articleSchema } from './schema';
+import { signIn, signOut } from './server/auth';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -38,7 +41,30 @@ export async function generate({ topic, tone, style, maxLength }: { topic: strin
   return { object: stream.value };
 }
 
-const generateArticlePrompt = () =>  `
+export const handleGithubLogin = async () => {
+  'use server';
+  try {
+    const { error } = await signIn("github");
+    if (error) throw error as Error;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const handleGithubLogout = async () => {
+  'use server';
+  try {
+    const { error } = await signOut({
+      redirect: true,
+      redirectTo: '/',
+    });
+    if (error) throw error as Error;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const generateArticlePrompt = () => `
 Generate a well-structured article metadata based on user inputs provided in a as a JSON object with metadata and content fields. These inputs include the topic, style, tone, and length, which will guide the writing of the article. The content should be a Markdown-formatted string suitable for rendering in the UI.
 
 **User Inputs:**
