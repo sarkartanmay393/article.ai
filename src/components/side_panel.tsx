@@ -105,9 +105,9 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
   };
 
   return (
-    <div className="bg-white border-r border-gray-200 flex flex-col">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 h-20">
         <h1 className="text-xl font-bold text-gray-900">Playground</h1>
         <p className="text-sm text-gray-500">Configure your article settings</p>
       </div>
@@ -206,7 +206,7 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
       </div>
 
       {/* Action Buttons */}
-      <div className="p-4 border-t border-gray-200 animate-fade-in">
+      <div className="p-4 border-gray-200 animate-fade-in">
         <Button disabled={loading} onClick={handleGenerateArticle} className={`w-full flex items-center justify-center ${loading ? "animate-pulse" : ""}`}>
           {loading ? <Loader2Icon className='animate-spin' /> :
             <Wand2 className="w-4 h-4 mr-2" />}

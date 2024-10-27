@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
 import { addSpacesBetweenWords } from "~/lib/utils";
 import type { KeyPair } from "~/lib/schema";
+import { useToast } from "~/hooks/use-toast";
 
 export default function Metadata({ metadata }: { metadata: ArticleMetadata | null }) {
   if (!metadata) {
@@ -18,6 +19,7 @@ export default function Metadata({ metadata }: { metadata: ArticleMetadata | nul
 
 const KeyValueView = ({ metadata }: { metadata: KeyPair }) => {
   const metadataKeys = Object.keys(metadata);
+  const { toast } = useToast();
 
   return (
     <div className="flex flex-col gap-2">
@@ -49,11 +51,12 @@ const KeyValueView = ({ metadata }: { metadata: KeyPair }) => {
           'use client';
           if (typeof valueParsed === 'string') {
             void navigator.clipboard.writeText(valueParsed);
+            toast({ title: 'Copied to Clipboard', description: 'Markdown content has been copied.' });
           }
         };
 
         return (
-          <div key={index} className="overflow-auto flex gap-1 border-[1px] border-gray-200 p-3 rounded-md justify-center">
+          <div key={index} className="overflow-auto items-center flex gap-1 border-[1px] border-gray-200 p-2 rounded-md">
             <div className="font-medium text-gray-900 w-max min-w-[144px] max-w-[168px] capitalize text-md">{addSpacesBetweenWords(key)}:</div>
             <div className="text-gray-600 flex-grow text-md font-[300] text-left">{valueParsed}</div>
             {typeof valueParsed === 'string' &&

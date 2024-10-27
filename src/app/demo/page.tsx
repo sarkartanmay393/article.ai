@@ -17,7 +17,7 @@ const Playground = () => {
   const [metadata, setMetadata] = useState('');
   
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen p-1">
       <div className="hidden md:flex w-full h-full">
         <ResizablePanelGroup
           direction="horizontal"
@@ -33,16 +33,16 @@ const Playground = () => {
         </ResizablePanelGroup>
       </div>
 
-      <div className="md:hidden w-full h-full">
+      <div className="md:hidden w-full h-full pt-0.5">
         <Tabs defaultValue="viewer" className="h-full">
-          <TabsList className="flex justify-around p-4 bg-gray-100">
+          <TabsList className="flex justify-around p-4">
             <TabsTrigger value="panel" className="w-full">Settings</TabsTrigger>
             <TabsTrigger value="viewer" className="w-full">Viewer</TabsTrigger>
           </TabsList>
-          <TabsContent value="panel" className="h-[calc(100%-4rem)] overflow-y-auto">
+          <TabsContent value="panel" className="h-[calc(100%-3rem)] overflow-y-auto">
             <SidePanel setArticle={setArticle} setLoading={setLoading} loading={loading} setMetadata={setMetadata} />
           </TabsContent>
-          <TabsContent value="viewer" className="h-[calc(100%-4rem)] overflow-y-auto">
+          <TabsContent value="viewer" className="h-[calc(100%-3rem)] overflow-y-auto">
             <ArticleViewer article={article} loading={loading} metadata={metadata} />
           </TabsContent>
         </Tabs>

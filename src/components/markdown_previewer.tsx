@@ -10,7 +10,7 @@ type MarkdownPreviewerProps = {
 
 export default function MarkdownPreviewer({ markdownString }: MarkdownPreviewerProps) {
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
+    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components} className='max-w-[800px] break-words'>
       {markdownString}
     </ReactMarkdown>
   );

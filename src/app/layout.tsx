@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { ToastProvider, ToastViewport } from "~/components/ui/toast";
+import { Toaster } from "~/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "article.ai",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <ToastProvider>
           {children}
           <ToastViewport />
+          <Toaster />
         </ToastProvider>
       </body>
     </html>

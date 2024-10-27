@@ -29,7 +29,7 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
 
   if (loading) {
     return (
-      <Card className="w-full h-full flex flex-col justify-center items-center text-center animate-fade-in px-8">
+      <Card className="w-full h-full flex flex-col justify-center items-center text-center animate-fade-in px-8 border-none">
         <Type className="w-12 h-12 text-gray-400 mb-4 animate-pulse" />
         <h2 className="text-xl font-medium text-gray-600 mb-2 animate-fade-in">
           Generating your article...
@@ -46,7 +46,7 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
 
   if (!article) {
     return (
-      <Card className="w-full h-full flex flex-col justify-center items-center text-center">
+      <Card className="w-full h-full flex flex-col justify-center items-center text-center border-none">
         <Type className="w-12 h-12 text-gray-400 mb-4" />
         <h2 className="text-xl font-medium text-gray-600 mb-2">Enter a topic to get started</h2>
         <p className="text-gray-500">Your generated article will appear here</p>
@@ -80,11 +80,11 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
   };
 
   return (
-    <Card className="w-full h-full overflow-auto">
+    <Card className="w-full h-full overflow-auto border-none">
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
-        <CardHeader className='flex flex-row justify-between border-b-[1px]'>
+        <CardHeader className='flex flex-row justify-between border-b-[1px] h-20'>
           <div className='flex flex-col'>
-            <CardTitle>{metadata?.title ?? 'untitled'}</CardTitle>
+            <CardTitle className=''>{metadata?.title ?? 'untitled'}</CardTitle>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>{metadata?.readingTime ?? -1} min read</span>
               <span>•</span>
@@ -99,7 +99,7 @@ export default function ArticleViewerPanel({ article, loading, metadata: metadat
         </CardHeader>
         <CardContent>
           <TabsContent value="rendered">
-            <div className="prose max-w-none">
+            <div className="prose max-w-none justify-center flex">
               <MarkdownPreviewer markdownString={article.slice(1, article.length-1).replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n')} />
             </div>
           </TabsContent>
