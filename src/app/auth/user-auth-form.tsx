@@ -5,9 +5,10 @@
 
 import { GitHubLogoIcon } from "@radix-ui/react-icons"
 import { Loader2Icon } from "lucide-react"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { Button } from "~/components/ui/button"
-import { handleGithubLogin } from "~/lib/actions"
+import { signInWithGithub } from "~/lib/actions"
 // import { Input } from "~/components/ui/input"
 // import { Label } from "~/components/ui/label"
 
@@ -17,6 +18,7 @@ type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
+  const router = useRouter();
 
   // async function onSubmit(event: React.SyntheticEvent) {
   //   event.preventDefault()
@@ -67,7 +69,10 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
       </div> */}
       <Button onClick={async () => {
         setIsLoading(true)
-        await handleGithubLogin();
+        const data = await signInWithGithub();
+        if (data && data.redirect.destination) {
+          router.push(data.redirect.destination);
+        }
         setIsLoading(false);
       }} variant="outline" type="button" disabled={isLoading}>
         {isLoading ? (

@@ -1,13 +1,9 @@
-'use client'
-
-import Image from "next/image"
-import { useRouter } from "next/navigation"
+// import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "~/components/ui/button"
+import Link from "next/link"
 
 export default function NotFound() {
-  const router = useRouter()
-
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
       <div className="max-w-md text-center">
@@ -26,11 +22,13 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <Button
-          onClick={() => router.push('/')}
+          asChild
           className="inline-flex items-center"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Go Home
+          <Link href='/'>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go Home
+          </Link>
         </Button>
       </div>
     </div>

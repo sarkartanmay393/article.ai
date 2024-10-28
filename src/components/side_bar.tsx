@@ -1,5 +1,4 @@
-import { ChevronUp } from "lucide-react";
-
+import { ChevronUp, User2Icon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -10,13 +9,13 @@ import {
   SidebarFooter,
 } from "~/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { auth } from "~/lib/server/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { handleGithubLogout } from "~/lib/actions";
+import { createClient } from "~/lib/supabase/server";
 
 export async function AppSidebar() {
-  const session = await auth();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <Sidebar>
@@ -35,8 +34,9 @@ export async function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <Image src={session?.user?.image ?? ''} width={20} height={20} alt={session?.user?.name ?? ''} className="rounded-full" />
-                  <span>{session?.user?.name}</span>
+                  <User2Icon className="w-8 h-8 rounded-full" />
+                  {/* <Image src={user?.factors ?? ''} width={20} height={20} alt={session?.user?.name ?? ''} className="rounded-full" /> */}
+                  <span>{user?.email ?? 'Not logged in'}</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -50,13 +50,19 @@ export async function AppSidebar() {
                 <DropdownMenuItem disabled>
                   <span>Billing</span>
                 </DropdownMenuItem>
-                <form action={handleGithubLogout}>
+                {user ?
                   <DropdownMenuItem asChild>
-                    <button type="submit" className="w-full cursor-pointer">
-                      <span>Sign out</span>
-                    </button>
+                    <Link href='/auth/logout' className="w-full cursor-pointer">
+                      Sign out
+                    </Link>
                   </DropdownMenuItem>
-                </form>
+                  :
+                  <DropdownMenuItem asChild>
+                    <Link href='/auth' className="w-full cursor-pointer">
+                      Sign In
+                    </Link>
+                  </DropdownMenuItem>
+                }
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

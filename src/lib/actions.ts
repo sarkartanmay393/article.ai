@@ -6,8 +6,7 @@ import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
 import { articleSchema } from './schema';
-import { signIn, signOut } from './server/auth';
-import { redirect } from 'next/navigation';
+import { createClient } from './supabase/server';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -42,27 +41,28 @@ export async function generate({ topic, tone, style, maxLength }: { topic: strin
   return { object: stream.value };
 }
 
-export const handleGithubLogin = async () => {
+export const signInWithGithub = async () => {
   'use server';
   try {
-    const { error } = await signIn("github", { redirectTo: '/demo' });
-    if (error) throw error as Error;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-export const handleGithubLogout = async () => {
-  'use server';
-  try {
-    const { error } = await signOut({
-      redirect: true,
-      redirectTo: '/',
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_DOMAIN}/api/auth/callback`,
+      }
     });
     if (error) throw error as Error;
-    return redirect('/');
-  } catch (error) {
-    console.error(error);
+    if (data.url) {
+      return {
+        redirect: {
+          destination: data.url,
+          permanent: false,
+        },
+      };
+    }
+  } catch (error: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    console.log(error);
   }
 };
 

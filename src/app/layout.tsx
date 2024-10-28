@@ -3,7 +3,6 @@ import "~/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import Providers from "./providers";
-// import { getServerAuthSession } from "~/lib/server/auth";
 
 export const metadata: Metadata = {
   title: "article.ai",
@@ -14,7 +13,6 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // const session = await getServerAuthSession();
 
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
