@@ -5,8 +5,10 @@
 import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
-import { articleSchema } from './schema';
-import { createClient } from './supabase/server';
+import { createClient } from '../supabase/server';
+import { articleSchema } from '../schema';
+import type { CustomUserMetadata } from '~/components/user_context';
+import { createAdminClient } from '../supabase/admin';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -52,6 +54,7 @@ export const signInWithGithub = async () => {
       }
     });
     if (error) throw error as Error;
+
     if (data.url) {
       return {
         redirect: {
@@ -65,6 +68,33 @@ export const signInWithGithub = async () => {
     console.log(error);
   }
 };
+
+export const updateUserMetadata = async (updatedMetadata: Partial<CustomUserMetadata>) => {
+  'use server';
+  try {
+    const supabase = await createClient();
+    const supabaseAdmin = await createAdminClient();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError)
+      return new Error('Error updating user metadata:', userError)
+
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userData.user.id, {
+      user_metadata: {
+        ...userData.user.user_metadata,
+        ...updatedMetadata,
+      }
+    });
+
+    if (error)
+      return new Error('Error updating user metadata:', error)
+
+    console.log('User metadata updated:', data);
+  } catch (error) {
+    console.error('Error updating user metadata:', error);
+  }
+};
+
 
 const generateArticlePrompt = () => `
 Generate a well-structured article metadata based on user inputs provided in a as a JSON object with metadata and content fields. These inputs include the topic, style, tone, and length, which will guide the writing of the article. The content should be a Markdown-formatted string suitable for rendering in the UI.
@@ -157,3 +187,4 @@ The output should be a structured JSON object containing the article with metada
 - Use varied sentence structure and vocabulary to maintain engagement.
 - Consider the expertise level of the target audience when writing.
 - Ensure factual accuracy, provide citations or references if necessary.`;
+

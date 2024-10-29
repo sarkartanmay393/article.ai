@@ -34,9 +34,15 @@ export async function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2Icon className="w-8 h-8 rounded-full" />
-                  {/* <Image src={user?.factors ?? ''} width={20} height={20} alt={session?.user?.name ?? ''} className="rounded-full" /> */}
-                  <span>{user?.email ?? 'Not logged in'}</span>
+                  {!user?.user_metadata?.avatar_url ? <User2Icon className="w-8 h-8 rounded-full" /> :
+                    <Image
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                      src={user?.user_metadata?.avatar_url ?? ''}
+                      alt={user?.user_metadata?.user_name + 'profile-pic' ?? ''}
+                    />}
+                  <span>{user?.user_metadata?.full_name ?? user?.email ?? 'Not logged in'}</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -47,8 +53,10 @@ export async function AppSidebar() {
                 <DropdownMenuItem disabled>
                   <span>Account</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled>
-                  <span>Billing</span>
+                <DropdownMenuItem>
+                  <Link href='subscription' className="w-full cursor-pointer">
+                    <span>Billing</span>
+                  </Link>
                 </DropdownMenuItem>
                 {user ?
                   <DropdownMenuItem asChild>

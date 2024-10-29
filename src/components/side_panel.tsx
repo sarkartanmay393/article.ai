@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Slider } from "~/components/ui/slider";
@@ -14,9 +14,10 @@ import { Textarea } from "~/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/select";
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from '~/hooks/use-toast';
-import { Loader2Icon, Wand2 } from 'lucide-react';
+import { Link, Loader2Icon, Wand2 } from 'lucide-react';
 import { readStreamableValue } from 'ai/rsc';
 import { generate } from '~/lib/actions';
+import { UserContext } from './user_context';
 
 type SidePanelProps = {
   setArticle: any;
@@ -35,6 +36,8 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
   const [seoOptimization, setSeoOptimization] = useState<CheckedState>(false);
   const [factChecking, setFactChecking] = useState<CheckedState>(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const userContextValue = useContext(UserContext);
+  const userMetadata = userContextValue?.user?.user_metadata;
 
   const { toast } = useToast();
 
@@ -58,7 +61,16 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         return;
       }
 
-        setLoading(true);
+      if (!userMetadata?.isSubscribed) {
+        toast({
+          title: "Not Subscribed",
+          description: "Please subscribe to the service before generating the article.",
+          action: <Link href='/subscription'>Subscribe</Link>,
+        });
+        return;
+      }
+
+      setLoading(true);
 
       const { object } = await generate({
         tone,

@@ -1,77 +1,64 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { buffer } from 'micro';
-import Stripe from 'stripe';
-import { createClient } from '~/lib/supabase/server';
+import type { Stripe } from "stripe";
+import { NextResponse } from "next/server";
+import { stripe } from "~/lib/stripe";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15',
-});
-
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const buf = await buffer(req);
-  const sig = req.headers['stripe-signature']!;
-
+export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(buf, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(
+      await (await req.blob()).text(),
+      req.headers.get("stripe-signature")!,
+      process.env.STRIPE_WEBHOOK_SECRET!,
+    );
   } catch (err) {
-    console.error(`Webhook Error: ${(err as Error).message}`);
-    return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    // On error, log and return the error message.
+    if (err instanceof Error) console.log(err);
+    console.log(`❌ Error message: ${errorMessage}`);
+    return NextResponse.json(
+      { message: `Webhook Error: ${errorMessage}` },
+      { status: 400 },
+    );
   }
 
-  // Handle the event
-  switch (event.type) {
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated':
-      await handleSubscriptionUpdate(event);
-      break;
-    case 'customer.subscription.deleted':
-      await handleSubscriptionCancellation(event);
-      break;
-    default:
-      console.warn(`Unhandled event type ${event.type}`);
+  // Successfully constructed event.
+  console.log("✅ Success:", event.id);
+
+  const permittedEvents: string[] = [
+    "checkout.session.completed",
+    "payment_intent.succeeded",
+    "payment_intent.payment_failed",
+  ];
+
+  if (permittedEvents.includes(event.type)) {
+    let data;
+
+    try {
+      switch (event.type) {
+        case "checkout.session.completed":
+          data = event.data.object;
+          console.log(`💰 CheckoutSession status: ${data.payment_status}`);
+          break;
+        case "payment_intent.payment_failed":
+          data = event.data.object;
+          console.log(`❌ Payment failed: ${data.last_payment_error?.message}`);
+          break;
+        case "payment_intent.succeeded":
+          data = event.data.object;
+          console.log(`💰 PaymentIntent status: ${data.status}`);
+          break;
+        default:
+          throw new Error(`Unhandled event: ${event.type}`);
+      }
+    } catch (error) {
+      console.log(error);
+      return NextResponse.json(
+        { message: "Webhook handler failed" },
+        { status: 500 },
+      );
+    }
   }
-
-  res.json({ received: true });
-}
-
-async function handleSubscriptionUpdate(event: Stripe.Event) {
-  const subscription = event.data.object as Stripe.Subscription;
-  const customerId = subscription.customer as string;
-
-  // Fetch the user associated with this customerId
-  const supabase = createClient();
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('stripe_customer_id', customerId)
-    .single();
-
-  if (error || !user) {
-    console.error('User not found for customer ID:', customerId);
-    return;
-  }
-
-  // Update permissions
-  const newPermissions = [...(user.permissions || []), 'premium'];
-  await supabase
-    .from('users')
-    .update({ permissions: newPermissions })
-    .eq('id', user.id);
-}
-
-async function handleSubscriptionCancellation(event: Stripe.Event) {
-  const subscription = event.data.object as Stripe.Subscription;
-  const customerId = subscription.customer as string;
-
-  // Similar logic to remove 'premium' from permissions
+  // Return a response to acknowledge receipt of the event.
+  return NextResponse.json({ message: "Received" }, { status: 200 });
 }
