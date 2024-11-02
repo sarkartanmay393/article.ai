@@ -5,10 +5,10 @@
 import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
-import { createClient } from '../supabase/server';
+import { createClient } from '~/lib/supabase/server';
 import { articleSchema } from '../schema';
 import type { CustomUserMetadata } from '~/components/user_context';
-import { createAdminClient } from '../supabase/admin';
+import { createAdminClient } from '~/lib/supabase/admin';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';

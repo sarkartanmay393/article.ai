@@ -1,37 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 import { Button } from "./ui/button";
-import { createCheckoutSession } from "~/lib/actions/stripe";
+import getStripe from "~/lib/stripe/utils";
+import { UserContext } from "./user_context";
+import { Loader2Icon } from "lucide-react";
 
 interface CheckoutButtonProps {
-  amount: number;
-  currentActivePlanAmount?: number;
+  priceId: string;
+  currentActivePlanId?: string;
   className?: string;
 }
 
-export default function CheckoutButton({ amount, currentActivePlanAmount = -1, className = "" }: CheckoutButtonProps): JSX.Element {
-  const [loading] = useState<boolean>(false);
+export default function CheckoutButton({ priceId, currentActivePlanId = "", className = "" }: CheckoutButtonProps): JSX.Element {
+  const [loading, setLoading] = useState<boolean>(false);
+  const userContextValue = useContext(UserContext);
 
-  const formAction = async (data: FormData): Promise<void> => {
-    const { url } = await createCheckoutSession(data);
-    window.location.assign(url!);
+  const handleSubmit = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const stripe = await getStripe();
+      if (!stripe) {
+        throw new Error("Stripe not initialized");
+      }
+
+      const resp = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          priceId: priceId,
+          userId: userContextValue?.user?.id,
+        }),
+      });
+
+      if (!resp.ok) {
+        throw new Error("Failed to create checkout session");
+      }
+
+      const respData = await resp.json() as { result: { id: string } };
+
+      await stripe.redirectToCheckout({
+        sessionId: respData?.result?.id,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      <form action={formAction} className="w-full">
-        <input type="hidden" name="amount" value={amount} />
-        <Button
-          className={className}
-          type="submit"
-          disabled={loading || currentActivePlanAmount === amount}
-          variant={currentActivePlanAmount === amount ? "outline" : "default"}
-        >
-          {currentActivePlanAmount >= 0 ? (currentActivePlanAmount === amount ? "Subscribed" : "Switch") : "Get Started"}
-        </Button>
-      </form>
-    </>
+    <Button
+      className={className}
+      type="submit"
+      disabled={loading || priceId === currentActivePlanId}
+      variant={currentActivePlanId === priceId ? "outline" : "default"}
+      onClick={handleSubmit}
+    >
+      {loading ? <Loader2Icon className="animate-spin w-3 h-3 mr-2" /> : null}
+      {Boolean(currentActivePlanId) ? (currentActivePlanId === priceId ? "Subscribed" : "Switch") : "Get Started"}
+    </Button>
   );
 }

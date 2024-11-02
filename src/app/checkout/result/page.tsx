@@ -1,7 +1,7 @@
 import type { Stripe } from "stripe";
 
 import PrintObject from "~/components/PrintObject";
-import { updateUserMetadata } from "~/lib/actions";
+// import { updateUserMetadata } from "~/lib/actions";
 import { stripe } from "~/lib/stripe";
 
 interface ResultPageProps {
@@ -21,15 +21,15 @@ export default async function ResultPage({ searchParams }: ResultPageProps): Pro
 
   const paymentIntent = checkoutSession.payment_intent as Stripe.PaymentIntent;
 
-  if (paymentIntent)
-    await updateUserMetadata({
-      subscriptionStatus: paymentIntent?.status,
-      isSubscribed: paymentIntent?.status === "succeeded",
-      renewalDate: new Date(paymentIntent?.created * 1000),
-      subscriptionId: paymentIntent?.id,
-      lastPaymentAmount: paymentIntent?.amount,
-      permissions: decidePermissionsToGive(paymentIntent),
-    });
+  // if (paymentIntent)
+  //   await updateUserMetadata({
+  //     subscriptionStatus: paymentIntent?.status,
+  //     isSubscribed: paymentIntent?.status === "succeeded",
+  //     renewalDate: new Date(paymentIntent?.created * 1000),
+  //     subscriptionId: paymentIntent?.id,
+  //     lastPaymentAmount: paymentIntent?.amount,
+  //     permissions: decidePermissionsToGive(paymentIntent),
+  //   });
 
   return (
     <>
@@ -40,14 +40,14 @@ export default async function ResultPage({ searchParams }: ResultPageProps): Pro
   );
 }
 
-const decidePermissionsToGive = (paymentIntent: Stripe.PaymentIntent): string[] => {
-  const permissions: string[] = [];
+// const decidePermissionsToGive = (paymentIntent: Stripe.PaymentIntent): string[] => {
+//   const permissions: string[] = [];
 
-  if (paymentIntent.amount === 0) {
-    permissions.push(...["max-articles:5", "max-words:200", "functions::SEO-optimization", "functions::fact-checking"]);
-  } else if (paymentIntent.amount === 20) {
-    permissions.push(...["max-articles:250", "max-words:1000", "functions::SEO-optimization", "functions::fact-checking"]);
-  }
+//   if (paymentIntent.amount === 0) {
+//     permissions.push(...["max-articles:5", "max-words:200", "functions::SEO-optimization", "functions::fact-checking"]);
+//   } else if (paymentIntent.amount === 20) {
+//     permissions.push(...["max-articles:250", "max-words:1000", "functions::SEO-optimization", "functions::fact-checking"]);
+//   }
 
-  return permissions;
-};
+//   return permissions;
+// };

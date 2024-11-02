@@ -47,22 +47,26 @@ export interface CustomUser extends User {
 
 export interface CustomUserMetadata extends UserMetadata {
   isSubscribed: boolean;
-  subscriptionStatus: SubscriptionStatus | string;
-  expiresAt?: Date | null;
-  renewalDate?: Date | null;
-  subscriptionId?: string | null;
-  subscriptionHistory: any;
+  subscribedAt?: number; // time epoch
+  subscriptionId?: string;
+  subscriptionStatus?: SubscriptionStatus | string;
   permissions: string[];
-  lastPaymentAmount?: number;
-  refreshQuotaInterval?: string | RefreshQuotaIntevel;
-  lastQuotaRefreshedAt?: Date | null;
-  remaining: {
-    articleGeneration: 0,
-  }
+  quota: {
+    allowed: {
+      articleGeneration: number;
+    };
+    consumed: {
+      articleGeneration: number;
+    };
+    refreshQuotaInterval: RefreshQuotaIntevel | string;
+    lastQuotaRefreshedAt: number; // time epoch\
+  };
 }
 
 export enum RefreshQuotaIntevel {
   Daily = 'daily',
+  Weekly = 'weekly',
+  Monthly = 'monthly',
 }
 
 export enum SubscriptionStatus {

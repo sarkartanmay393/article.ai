@@ -5,9 +5,11 @@ import { Check } from "lucide-react"
 import CheckoutButton from "~/components/CheckoutButton"
 import { useContext } from "react";
 import { UserContext } from "~/components/user_context";
+import { PriceIds } from "~/lib/constants";
 
 const plans = [
   {
+    priceId: PriceIds.basic,
     name: "Basic",
     price: "$0",
     amount: 0,
@@ -22,6 +24,7 @@ const plans = [
     ]
   },
   {
+    priceId: PriceIds.pro,
     name: "Pro",
     price: "$20",
     amount: 20,
@@ -64,7 +67,7 @@ export default function SubscriptionPage() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <CheckoutButton amount={plan.amount} className="w-full" currentActivePlanAmount={metadata?.isSubscribed ? metadata.lastPaymentAmount : -1} />
+                <CheckoutButton priceId={plan.priceId} className="w-full" currentActivePlanId={metadata?.priceId ?? ''} />
               </CardFooter>
             </Card>
           ))}

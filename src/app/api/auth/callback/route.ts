@@ -12,30 +12,29 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const supabaseAdmin = await createAdminClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    // TODO: testing
-    // const accessToken = await exchangeCodeForToken(code);
-    // const githubUser = await fetchGitHubUser(accessToken);
-    // await saveGitHubUserToSupabase(githubUser);
     if (data?.user?.id) {
+      const currentDateTimeEpoch = Math.floor(Date.now() / 1000);
       const { error: userError } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
         user_metadata: {
           isSubscribed: false,
-          subscriptionStatus: "none",
-          subscriptionId: "",
-          subscriptionHistory: {},
           permissions: [
-            "max-articles:0",
-            "max-words:0",
+            'max:article-length:200',
           ],
-          refreshQuotaInterval: 'daily',
-          lastQuotaRefreshedAt: new Date(),
-          remaining: {
-            articleGeneration: 0,
-          }
+          quota: {
+            allowed: {
+              articleGeneration: 5,
+            },
+            consumed: {
+              articleGeneration: 0,
+            },
+            refreshQuotaInterval: 'daily',
+            lastQuotaRefreshedAt: currentDateTimeEpoch,
+          },
         }
       });
 
       if (userError) {
+        // TODO: need some mechanism to retry updating user metadata
         console.error('Error updating user metadata:', userError);
         return NextResponse.json({ error: 'Error updating user metadata' }, { status: 500 });
       }
@@ -58,56 +57,3 @@ export async function GET(request: Request) {
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
-
-// async function exchangeCodeForToken(code: string): Promise<string> {
-//   const response = await fetch('https://github.com/login/oauth/access_token', {
-//     method: 'POST',
-//     headers: {
-//       Accept: 'application/json',
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({
-//       client_id: process.env.GITHUB_CLIENT_ID,
-//       client_secret: process.env.GITHUB_CLIENT_SECRET,
-//       code,
-//     }),
-//   });
-
-//   const data = await response.json();
-//   if (!data.access_token) {
-//     throw new Error('Failed to obtain access token');
-//   }
-
-//   return data.access_token;
-// }
-
-// async function fetchGitHubUser(accessToken: string) {
-//   const response = await fetch('https://api.github.com/user', {
-//     headers: {
-//       Authorization: `token ${accessToken}`,
-//     },
-//   });
-
-//   if (!response.ok) {
-//     throw new Error('Failed to fetch GitHub user');
-//   }
-
-//   return response.json();
-// }
-
-// async function saveGitHubUserToSupabase(githubUser: any) {
-//   const { data, error } = await supabase
-//     .from('users') // Replace 'users' with your actual table name
-//     .upsert({
-//       id: githubUser.id, // Assuming 'id' is the primary key
-//       username: githubUser.login,
-//       avatar_url: githubUser.avatar_url,
-//       // Add other fields as necessary
-//     });
-
-//   if (error) {
-//     console.error('Error saving GitHub user to Supabase:', error);
-//   } else {
-//     console.log('GitHub user saved to Supabase:', data);
-//   }
-// }

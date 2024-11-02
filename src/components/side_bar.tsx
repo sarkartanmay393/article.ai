@@ -55,7 +55,7 @@ export async function AppSidebar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href='subscription' className="w-full cursor-pointer">
-                    <span>Billing</span>
+                    <span>Subscription</span>
                   </Link>
                 </DropdownMenuItem>
                 {user ?

@@ -5,6 +5,12 @@ import { stripe } from "~/lib/stripe";
 export async function POST(req: Request) {
   let event: Stripe.Event;
 
+  // console.log("Received a request");
+  //   return NextResponse.json({ message: "Received" }, { status: 200 });
+
+  console.log("Stripe webhook hit");
+  console.log(req.headers);
+
   try {
     event = stripe.webhooks.constructEvent(
       await (await req.blob()).text(),
@@ -13,7 +19,6 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
-    // On error, log and return the error message.
     if (err instanceof Error) console.log(err);
     console.log(`❌ Error message: ${errorMessage}`);
     return NextResponse.json(
@@ -22,7 +27,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Successfully constructed event.
   console.log("✅ Success:", event.id);
 
   const permittedEvents: string[] = [
@@ -59,6 +63,6 @@ export async function POST(req: Request) {
       );
     }
   }
-  // Return a response to acknowledge receipt of the event.
+
   return NextResponse.json({ message: "Received" }, { status: 200 });
 }
