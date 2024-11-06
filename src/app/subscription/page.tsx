@@ -45,29 +45,32 @@ export default function SubscriptionPage() {
   const metadata = userContextValue?.user?.user_metadata;
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-6xl w-full space-y-8">
-        <h1 className="text-4xl font-bold text-center text-gray-900">Subcription Plans</h1>
+    <div className="w-full min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 flex items-center justify-center p-8">
+      <div className="max-w-6xl w-full h-full space-y-8 flex flex-col">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-4xl font-bold text-center text-gray-800 mb-4">Subscription Plans</h1>
+          <p className="text-center text-gray-600 mb-6">Choose a plan that fits your needs and start leveraging our platform to its fullest!</p>
+        </div>
         <div className="grid md:grid-cols-2 gap-8">
           {plans.map((plan, index) => (
-            <Card key={index} className={`flex flex-col ${plan.name === "Pro" ? "border-primary" : ""}`}>
-              <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
+            <Card key={index} className={` flex flex-col bg-white shadow-lg rounded-lg overflow-hidden cursor-pointer hover:border-2 hover:border-indigo-500 transition-all duration-250`}>
+              <CardHeader className="bg-indigo-50 px-6 py-4">
+                <CardTitle className="text-2xl text-indigo-700">{plan.name}</CardTitle>
+                <CardDescription className="text-gray-500">{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-4xl font-bold mb-4">{plan.price}<span className="text-base font-normal text-gray-600">/month</span></p>
+              <CardContent className="flex-grow p-6">
+                <p className="text-4xl font-bold mb-4 text-indigo-700">{plan.price}<span className="text-lg font-normal text-gray-500">/month</span></p>
                 <ul className="space-y-2">
                   {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center">
+                    <li key={i} className="flex items-center text-gray-600">
                       <Check className="h-5 w-5 text-green-500 mr-2" />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
-              <CardFooter>
-                <CheckoutButton priceId={plan.priceId} className="w-full" currentActivePlanId={metadata?.priceId ?? ''} />
+              <CardFooter className="bg-indigo-100 px-6 py-4">
+                <CheckoutButton priceId={plan.priceId} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150" currentActivePlanId={metadata?.priceId ?? ''} />
               </CardFooter>
             </Card>
           ))}

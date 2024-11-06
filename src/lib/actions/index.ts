@@ -9,6 +9,8 @@ import { createClient } from '~/lib/supabase/server';
 import { articleSchema } from '../schema';
 import type { CustomUserMetadata } from '~/components/user_context';
 import { createAdminClient } from '~/lib/supabase/admin';
+import type Stripe from 'stripe';
+import { stripe } from '~/lib/stripe';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -69,7 +71,7 @@ export const signInWithGithub = async () => {
   }
 };
 
-export const updateUserMetadata = async (updatedMetadata: Partial<CustomUserMetadata>) => {
+export const updateUserMetadata = async (customer: string | Stripe.Customer | Stripe.DeletedCustomer | null, updatedMetadata: Partial<CustomUserMetadata>) => {
   'use server';
   try {
     const supabase = await createClient();
@@ -92,6 +94,22 @@ export const updateUserMetadata = async (updatedMetadata: Partial<CustomUserMeta
     console.log('User metadata updated:', data);
   } catch (error) {
     console.error('Error updating user metadata:', error);
+  }
+};
+
+export const verifyCheckoutSession = async (sessionId?: string) => {
+  'use server';
+  if (!sessionId) return null;
+  
+  try {
+    const checkoutSession: Stripe.Checkout.Session =
+      await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ["line_items", "payment_intent"],
+      });
+    return checkoutSession;
+  } catch (error) {
+    console.error('Error verifying checkout session:', error);
+    return null;
   }
 };
 

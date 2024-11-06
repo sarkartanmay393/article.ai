@@ -1,5 +1,7 @@
-"use client";
+'use client';
 
-export default function Error({ error }: { error: Error }) {
-  return <h2>{error.message}</h2>;
+export default function CheckoutError({ error }: any) {
+  return (
+    <div>{JSON.stringify(error)}</div>
+  );
 }

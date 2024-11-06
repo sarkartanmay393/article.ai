@@ -50,8 +50,10 @@ export async function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem disabled>
-                  <span>Account</span>
+                <DropdownMenuItem>
+                  <Link href='account' className="w-full cursor-pointer">
+                    <span>Account</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href='subscription' className="w-full cursor-pointer">

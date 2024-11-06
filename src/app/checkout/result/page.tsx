@@ -1,53 +1,62 @@
-import type { Stripe } from "stripe";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import Link from "next/link";
+import type Stripe from "stripe";
 
-import PrintObject from "~/components/PrintObject";
-// import { updateUserMetadata } from "~/lib/actions";
-import { stripe } from "~/lib/stripe";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
+import { verifyCheckoutSession } from "~/lib/actions";
 
 interface ResultPageProps {
   searchParams: {
-    session_id: string;
+    session_id?: string;
   };
 }
 
 export default async function ResultPage({ searchParams }: ResultPageProps): Promise<JSX.Element> {
-  if (!searchParams.session_id)
-    throw new Error("Please provide a valid session_id (`cs_test_...`)");
+  let status: 'loading' | 'success' | 'failed' = 'loading';
 
-  const checkoutSession: Stripe.Checkout.Session =
-    await stripe.checkout.sessions.retrieve(searchParams.session_id, {
-      expand: ["line_items", "payment_intent"],
-    });
+  if (searchParams.session_id) {
+    const checkoutSession = await verifyCheckoutSession(searchParams.session_id);
+    if (!checkoutSession) {
+      throw new Error('Invalid session ID');
+    }
+    const paymentIntent = checkoutSession.payment_intent as Stripe.PaymentIntent;
 
-  const paymentIntent = checkoutSession.payment_intent as Stripe.PaymentIntent;
-
-  // if (paymentIntent)
-  //   await updateUserMetadata({
-  //     subscriptionStatus: paymentIntent?.status,
-  //     isSubscribed: paymentIntent?.status === "succeeded",
-  //     renewalDate: new Date(paymentIntent?.created * 1000),
-  //     subscriptionId: paymentIntent?.id,
-  //     lastPaymentAmount: paymentIntent?.amount,
-  //     permissions: decidePermissionsToGive(paymentIntent),
-  //   });
+    if (paymentIntent?.status === "succeeded") {
+      status = 'success';
+    } else if (paymentIntent?.status === "canceled") {
+      status = 'failed';
+    }
+  }
 
   return (
-    <>
-      <h2>Status: {paymentIntent?.status}</h2>
-      <h3>Checkout Session response:</h3>
-      <PrintObject content={checkoutSession} />
-    </>
+    <Card className="w-full max-w-md mx-auto mt-2">
+      <CardHeader>
+        <CardDescription>
+          {status === 'loading' ? 'Checking payment status...' : `Payment ${status}`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex justify-center items-center">
+        {status === 'loading' && <Loader2 className="h-12 w-12 animate-spin text-blue-500" />}
+        {status === 'success' && <CheckCircle className="h-12 w-12 text-green-500" />}
+        {status === 'failed' && <XCircle className="h-12 w-12 text-red-500" />}
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        {status === 'success' && (
+          <Button asChild>
+            <Link href='/'>
+              Return to Home
+            </Link>
+          </Button>
+        )}
+        {status === 'failed' && (
+          <Button asChild>
+            <Link href='/subscription'>
+              Try Again
+            </Link>
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
-
-// const decidePermissionsToGive = (paymentIntent: Stripe.PaymentIntent): string[] => {
-//   const permissions: string[] = [];
-
-//   if (paymentIntent.amount === 0) {
-//     permissions.push(...["max-articles:5", "max-words:200", "functions::SEO-optimization", "functions::fact-checking"]);
-//   } else if (paymentIntent.amount === 20) {
-//     permissions.push(...["max-articles:250", "max-words:1000", "functions::SEO-optimization", "functions::fact-checking"]);
-//   }
-
-//   return permissions;
-// };
