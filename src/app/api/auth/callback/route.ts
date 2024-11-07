@@ -22,7 +22,7 @@ export async function GET(request: Request) {
           ],
           quota: {
             allowed: {
-              articleGeneration: 5,
+              articleGeneration: 0,
             },
             consumed: {
               articleGeneration: 0,

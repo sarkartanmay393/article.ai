@@ -18,6 +18,7 @@ export default function UserProvider({ children }: { children: React.ReactNode }
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        console.log(session.user)
         setUser(session.user as CustomUser);
       } else {
         setUser(null);
@@ -46,9 +47,11 @@ export interface CustomUser extends User {
 }
 
 export interface CustomUserMetadata extends UserMetadata {
+  [key: string]: any;
   isSubscribed: boolean;
   subscribedAt?: number; // time epoch
   subscriptionId?: string;
+  stripeCustomerId?: string;
   subscriptionStatus?: SubscriptionStatus | string;
   permissions: string[];
   quota: {

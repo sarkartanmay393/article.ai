@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 'use server';
@@ -7,7 +8,7 @@ import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
 import { createClient } from '~/lib/supabase/server';
 import { articleSchema } from '../schema';
-import type { CustomUserMetadata } from '~/components/user_context';
+import type { CustomUser, CustomUserMetadata } from '~/components/user_context';
 import { createAdminClient } from '~/lib/supabase/admin';
 import type Stripe from 'stripe';
 import { stripe } from '~/lib/stripe';
@@ -71,20 +72,31 @@ export const signInWithGithub = async () => {
   }
 };
 
-export const updateUserMetadata = async (customer: string | Stripe.Customer | Stripe.DeletedCustomer | null, updatedMetadata: Partial<CustomUserMetadata>) => {
+export const updateUserMetadata = async ({ userId = '', updateUserMetadata }: { userId: string, updateUserMetadata: Partial<CustomUserMetadata> }) => {
   'use server';
   try {
-    const supabase = await createClient();
+    let user: CustomUser;
     const supabaseAdmin = await createAdminClient();
-    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (userError)
-      return new Error('Error updating user metadata:', userError)
+    if (userId === '') {
+      const supabase = await createClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError)
+        return new Error('Error updating user metadata:', userError)
+      user = userData.user as CustomUser;
+      userId = userData.user.id;
+    } else {
+      const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (error)
+        return new Error('Error updating user metadata:', error)
+      user = data.user as CustomUser;
+    }
 
-    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userData.user.id, {
+
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: {
-        ...userData.user.user_metadata,
-        ...updatedMetadata,
+        ...user.user_metadata,
+        ...updateUserMetadata,
       }
     });
 
@@ -112,6 +124,37 @@ export const verifyCheckoutSession = async (sessionId?: string) => {
     return null;
   }
 };
+
+export const reduceQuotaByOne = async () => {
+  'use server'
+  const supabase =await createClient();
+  const userResponse = await supabase.auth.getUser();
+  if (userResponse.error) {
+    throw new Error('user not found')
+  }
+  const supabaseAdmin = await createAdminClient();
+  const updateResponse = await supabaseAdmin.auth.admin.updateUserById(userResponse.data.user.id, {
+    user_metadata: {
+      ...userResponse.data.user.user_metadata,
+      quota: {
+        allowed: {
+          articleGeneration: userResponse.data.user.user_metadata.quota.allowed.articleGeneration - 1,
+        },
+        consumed: {
+          articleGeneration: userResponse.data.user.user_metadata.quota.consumed.articleGeneration + 1,
+        },
+        refreshQuotaInterval: userResponse.data.user.user_metadata.quota.refreshQuotaInterval,
+        lastQuotaRefreshedAt: userResponse.data.user.user_metadata.quota.lastQuotaRefreshedAt,
+      }
+    }
+  })
+
+  if (updateResponse.error) {
+    throw new Error('update user metadata failed')
+  }
+
+  return true;
+}
 
 
 const generateArticlePrompt = () => `

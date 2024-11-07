@@ -16,7 +16,7 @@ import type { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from '~/hooks/use-toast';
 import { Link, Loader2Icon, Wand2 } from 'lucide-react';
 import { readStreamableValue } from 'ai/rsc';
-import { generate } from '~/lib/actions';
+import { generate, reduceQuotaByOne } from '~/lib/actions';
 import { UserContext } from './user_context';
 
 type SidePanelProps = {
@@ -70,6 +70,15 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         return;
       }
 
+      if (userMetadata?.quota.allowed.articleGeneration < 1) {
+        toast({
+          title: "Quota Limit Reached",
+          description: "Please subscribe to the service before generating the article.",
+          action: <Link href='/subscription'>Subscribe</Link>,
+        });
+        return;
+      }
+
       setLoading(true);
 
       const { object } = await generate({
@@ -100,9 +109,12 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
 
       clearAllInput();
 
+      await reduceQuotaByOne();
+
       toast({
         title: "Article Generated",
         description: `Your article with style "${style}" and tone "${tone}" has been generated!`,
+        duration: 500,
       });
 
     } catch (error) {
