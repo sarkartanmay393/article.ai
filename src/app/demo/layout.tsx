@@ -1,4 +1,3 @@
-import { AppSidebar } from '~/components/side_bar';
 import TopBar from '~/components/top_bar';
 
 export default async function PlaygroundLayout({ children }: { children: React.ReactNode }) {

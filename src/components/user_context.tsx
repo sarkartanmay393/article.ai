@@ -27,7 +27,7 @@ export default function UserProvider({ children }: { children: React.ReactNode }
           // refresh quota
           const refreshInterval = (data?.user as CustomUser).user_metadata.quota.refreshQuotaInterval;
           const lastQuotaRefreshedAt = (data?.user as CustomUser).user_metadata.quota.lastQuotaRefreshedAt;
-          refreshQuota(refreshInterval, lastQuotaRefreshedAt, data?.user?.id ?? "");
+          void refreshQuota(refreshInterval, lastQuotaRefreshedAt, data?.user?.id ?? "");
         }).catch((err) => {
           console.error('Error fetching user', err);
           setUser(null);

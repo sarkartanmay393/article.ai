@@ -33,7 +33,7 @@ export default function TopBar() {
                   height={20}
                   className="rounded-full"
                   src={userMetadata?.avatar_url ?? ''}
-                  alt={userMetadata?.user_name + 'profile-pic' ?? ''}
+                  alt={userMetadata?.user_name ?? '' + 'profile-pic' ?? ''}
                 /> :
                   <User2Icon className="w-8 h-8 rounded-full" />
                 }
@@ -46,12 +46,12 @@ export default function TopBar() {
               className="w-[--radix-popper-anchor-width]"
             >
               <DropdownMenuItem>
-                <Link href='account' className={"w-full cursor-pointer" + userMetadata ? '' : 'pointer-events-none opacity-50'}>
+                <Link href='account' className={"w-full cursor-pointer" + (userMetadata ? '' : 'pointer-events-none opacity-50')}>
                   <span>Account</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href='subscription' className={"w-full cursor-pointer" + userMetadata ? '' : 'pointer-events-none opacity-50'}>
+                <Link href='subscription' className={"w-full cursor-pointer" + (userMetadata ? '' : 'pointer-events-none opacity-50')}>
                   <span>Subscription</span>
                 </Link>
               </DropdownMenuItem>

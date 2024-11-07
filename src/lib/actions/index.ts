@@ -260,7 +260,7 @@ export const refreshQuota = async (refreshInterval: string, lastQuotaRefreshedAt
 
   const user = userResponse.data.user;
 
-  switch (refreshInterval) {
+  switch (refreshInterval as RefreshQuotaIntevel) {
     case RefreshQuotaIntevel.Daily:
       if (lastQuotaRefreshedAt && Date.now() - lastQuotaRefreshedAt > 24 * 60 * 60 * 1000) {
         supabaseAdmin.auth.admin.updateUserById(user?.id ?? "", {

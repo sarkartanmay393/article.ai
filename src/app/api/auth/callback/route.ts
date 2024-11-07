@@ -14,7 +14,6 @@ export async function GET(request: Request) {
     const supabaseAdmin = await createAdminClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (data?.user?.id) {
-      const currentDateTimeEpoch = Math.floor(Date.now() / 1000);
       const { error: userError } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
         user_metadata: {
           isSubscribed: false,
