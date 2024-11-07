@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 'use server';
@@ -5,8 +6,13 @@
 import { streamObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
-import { articleSchema } from './schema';
-import { createClient } from './supabase/server';
+import { createClient } from '~/lib/supabase/server';
+import { articleSchema } from '../schema';
+import { RefreshQuotaIntevel, type CustomUser, type CustomUserMetadata } from '~/components/user_context';
+import { createAdminClient } from '~/lib/supabase/admin';
+import type Stripe from 'stripe';
+import { stripe } from '~/lib/stripe';
+import { decidePermissionsAndQuotaToGive } from '~/app/api/webhook/stripe/route';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -48,10 +54,11 @@ export const signInWithGithub = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_DOMAIN}/api/auth/callback`,
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`,
       }
     });
     if (error) throw error as Error;
+
     if (data.url) {
       return {
         redirect: {
@@ -65,6 +72,91 @@ export const signInWithGithub = async () => {
     console.log(error);
   }
 };
+
+export const updateUserMetadata = async ({ userId = '', updateUserMetadata }: { userId: string, updateUserMetadata: Partial<CustomUserMetadata> }) => {
+  'use server';
+  try {
+    let user: CustomUser;
+    const supabaseAdmin = await createAdminClient();
+
+    if (userId === '') {
+      const supabase = await createClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError)
+        return new Error('Error updating user metadata:', userError)
+      user = userData.user as CustomUser;
+      userId = userData.user.id;
+    } else {
+      const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (error)
+        return new Error('Error updating user metadata:', error)
+      user = data.user as CustomUser;
+    }
+
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      user_metadata: {
+        ...user.user_metadata,
+        ...updateUserMetadata,
+      }
+    });
+
+    if (error)
+      return new Error('Error updating user metadata:', error)
+
+    // console.log('User metadata updated:', data);
+  } catch (error) {
+    console.error('Error updating user metadata:', error);
+  }
+};
+
+export const verifyCheckoutSession = async (sessionId?: string) => {
+  'use server';
+  if (!sessionId) return null;
+
+  try {
+    const checkoutSession: Stripe.Checkout.Session =
+      await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ["line_items", "payment_intent"],
+      });
+    return checkoutSession;
+  } catch (error) {
+    console.error('Error verifying checkout session:', error);
+    return null;
+  }
+};
+
+export const reduceQuotaByOne = async () => {
+  'use server'
+  const supabase = await createClient();
+  const userResponse = await supabase.auth.getUser();
+  if (userResponse.error) {
+    throw new Error('user not found')
+  }
+  const supabaseAdmin = await createAdminClient();
+  const updateResponse = await supabaseAdmin.auth.admin.updateUserById(userResponse.data.user.id, {
+    user_metadata: {
+      ...userResponse.data.user.user_metadata,
+      quota: {
+        allowed: {
+          articleGeneration: userResponse.data.user.user_metadata.quota.allowed.articleGeneration - 1,
+        },
+        consumed: {
+          articleGeneration: userResponse.data.user.user_metadata.quota.consumed.articleGeneration + 1,
+        },
+        refreshQuotaInterval: userResponse.data.user.user_metadata.quota.refreshQuotaInterval,
+        lastQuotaRefreshedAt: userResponse.data.user.user_metadata.quota.lastQuotaRefreshedAt,
+      }
+    }
+  })
+
+  if (updateResponse.error) {
+    throw new Error('update user metadata failed')
+  }
+
+  return true;
+}
+
 
 const generateArticlePrompt = () => `
 Generate a well-structured article metadata based on user inputs provided in a as a JSON object with metadata and content fields. These inputs include the topic, style, tone, and length, which will guide the writing of the article. The content should be a Markdown-formatted string suitable for rendering in the UI.
@@ -157,3 +249,46 @@ The output should be a structured JSON object containing the article with metada
 - Use varied sentence structure and vocabulary to maintain engagement.
 - Consider the expertise level of the target audience when writing.
 - Ensure factual accuracy, provide citations or references if necessary.`;
+
+export const refreshQuota = async (refreshInterval: string, lastQuotaRefreshedAt: number, userId: string) => {
+  'use server'
+  const supabaseAdmin = await createAdminClient();
+  const userResponse = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userResponse.error) {
+    throw new Error('user not found')
+  }
+
+  const user = userResponse.data.user;
+
+  switch (refreshInterval as RefreshQuotaIntevel) {
+    case RefreshQuotaIntevel.Daily:
+      if (lastQuotaRefreshedAt && Date.now() - lastQuotaRefreshedAt > 24 * 60 * 60 * 1000) {
+        supabaseAdmin.auth.admin.updateUserById(user?.id ?? "", {
+          user_metadata: {
+            ...user?.user_metadata,
+            ...decidePermissionsAndQuotaToGive(user?.user_metadata?.priceId ?? "")
+          }
+        }).then(({ }) => {
+          console.log('quota refreshed')
+        }).catch((err) => {
+          throw new Error('Error refreshing quota', err);
+        });
+      }
+      break;
+    case RefreshQuotaIntevel.Monthly:
+      if (lastQuotaRefreshedAt && Date.now() - lastQuotaRefreshedAt > 30 * 24 * 60 * 60 * 1000)
+        supabaseAdmin.auth.admin.updateUserById(user?.id ?? "", {
+          user_metadata: {
+            ...user?.user_metadata,
+            ...decidePermissionsAndQuotaToGive(user?.user_metadata?.priceId ?? "")
+          }
+        }).then(({ }) => {
+          console.log('quota refreshed')
+        }).catch((err) => {
+          throw new Error('Error refreshing quota', err);
+        });
+      break;
+    default:
+      break;
+  }
+}

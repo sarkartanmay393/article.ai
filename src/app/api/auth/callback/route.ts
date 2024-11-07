@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NextResponse } from 'next/server';
+import { createAdminClient } from '~/lib/supabase/admin';
 import { createClient } from '~/lib/supabase/server';
+import { decidePermissionsAndQuotaToGive } from '../../webhook/stripe/route';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -9,7 +11,23 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const supabaseAdmin = await createAdminClient();
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (data?.user?.id) {
+      const { error: userError } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
+        user_metadata: {
+          isSubscribed: false,
+          ...decidePermissionsAndQuotaToGive('')
+        }
+      });
+
+      if (userError) {
+        // TODO: need some mechanism to retry updating user metadata
+        console.error('Error updating user metadata:', userError);
+        return NextResponse.json({ error: 'Error updating user metadata' }, { status: 500 });
+      }
+    }
+
     if (!error) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'

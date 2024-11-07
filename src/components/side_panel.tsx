@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client';
 
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Slider } from "~/components/ui/slider";
@@ -14,9 +14,14 @@ import { Textarea } from "~/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "~/components/ui/select";
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { useToast } from '~/hooks/use-toast';
-import { Loader2Icon, Wand2 } from 'lucide-react';
+import { InfoIcon, Loader2Icon, Wand2 } from 'lucide-react';
 import { readStreamableValue } from 'ai/rsc';
-import { generate } from '~/lib/actions';
+import { generate, reduceQuotaByOne } from '~/lib/actions';
+import { UserContext } from './user_context';
+import { Tooltip, TooltipTrigger } from './ui/tooltip';
+import { TooltipContent } from '@radix-ui/react-tooltip';
+import { Card, CardContent } from './ui/card';
+import Link from 'next/link';
 
 type SidePanelProps = {
   setArticle: any;
@@ -30,23 +35,32 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('Professional');
   const [tone, setTone] = useState('Neutral');
-  const [maxLength, setMaxLength] = useState(500);
+  const [maxLength, setMaxLength] = useState(10);
   const [includeCitations, setIncludeCitations] = useState<CheckedState>(false);
   const [seoOptimization, setSeoOptimization] = useState<CheckedState>(false);
   const [factChecking, setFactChecking] = useState<CheckedState>(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const userContextValue = useContext(UserContext);
+  const userMetadata = userContextValue?.user?.user_metadata;
+  const limitsForCurrentUser = {
+    articleLength: Number(userMetadata?.permissions.find((permission) => permission.includes('article-length'))?.split(':')[2] ?? 100),
+    allowedArticleGeneration: Number(userMetadata?.quota.allowed.articleGeneration ?? 0),
+  }
+
+  // console.log('userContextValue', userMetadata)
+  // console.log('limitsForCurrentUser', limitsForCurrentUser)
 
   const { toast } = useToast();
 
-  const clearAllInput = () => {
-    setTone('');
-    setStyle('Professional');
-    setTone('Neutral');
-    setMaxLength(500);
-    setIncludeCitations(false);
-    setSeoOptimization(false);
-    setFactChecking(false);
-  }
+  // const clearAllInput = () => {
+  //   setTone('');
+  //   setStyle('Professional');
+  //   setTone('Neutral');
+  //   setMaxLength(500);
+  //   setIncludeCitations(false);
+  //   setSeoOptimization(false);
+  //   setFactChecking(false);
+  // }
 
   const handleGenerateArticle = async () => {
     try {
@@ -58,7 +72,16 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         return;
       }
 
-        setLoading(true);
+      if (limitsForCurrentUser.allowedArticleGeneration < 1) {
+        toast({
+          title: "Quota Limit Reached",
+          description: "Please subscribe to the service before generating the article.",
+          action: <Link href='/subscription'>Subscribe</Link>,
+        });
+        return;
+      }
+
+      setLoading(true);
 
       const { object } = await generate({
         tone,
@@ -86,11 +109,15 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         }
       }
 
-      clearAllInput();
+      // clearAllInput();
+
+      await reduceQuotaByOne();
+      userContextValue?.reduceQuotaByOne();
 
       toast({
         title: "Article Generated",
         description: `Your article with style "${style}" and tone "${tone}" has been generated!`,
+        duration: 500,
       });
 
     } catch (error) {
@@ -100,7 +127,7 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         description: "An error occurred while generating the article. Please try again.",
       });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -160,17 +187,34 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
 
         {/* Length Slider */}
         <div className="space-y-2">
-          <Label>Maximum Length</Label>
+          <Label className='flex items-center'>
+            Maximum Length
+            <Tooltip>
+              <TooltipTrigger>
+                <InfoIcon className="w-4 h-4 ml-1 text-gray-500" />
+              </TooltipTrigger>
+              <TooltipContent sideOffset={4} className='z-[1500]'>
+                <Card>
+                  <CardContent className='max-w-xs bg-white p-4 rounded-lg shadow-lg'>
+                    <p className="text-xs text-gray-500">
+                      The maximum length of the article in words. This is a soft limit and may be adjusted based on the
+                      length of the input text. Unlock the full potential by <Link href='/subscription' className='underline'>subscribing</Link> to the service.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TooltipContent>
+            </Tooltip>
+          </Label>
           <div className="relative">
             <Slider
               disabled={loading}
-              defaultValue={[500]}
-              min={100}
-              max={2000}
+              defaultValue={[10]}
+              min={10}
+              max={limitsForCurrentUser.articleLength}
               step={10}
               value={[maxLength]}
               onValueChange={(value) => setMaxLength(value.at(0)!)}
-              onMouseEnter={() => setShowTooltip(true)} 
+              onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
             />
             {showTooltip && (
@@ -180,8 +224,8 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
             )}
           </div>
           <div className="flex justify-between text-sm text-gray-500">
-            <span>100</span>
-            <span>2000 words</span>
+            <span>10</span>
+            <span>{limitsForCurrentUser.articleLength} words</span>
           </div>
         </div>
 

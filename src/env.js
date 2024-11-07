@@ -24,10 +24,14 @@ export const env = createEnv({
     // DISCORD_CLIENT_ID: z.string(),
     // DISCORD_CLIENT_SECRET: z.string(),
     OPENAI_API_KEY: z.string(),
+
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
     SUPABASE_JWT_SECRET: z.string(),
     SUPABASE_AUTH_GITHUB_SECRET: z.string(),
     SUPABASE_AUTH_GITHUB_CLIENT_ID: z.string(),
+
+    STRIPE_SECRET_KEY: z.string(),
+    STRIPE_WEBHOOK_SECRET: z.string(),
   },
 
   /**
@@ -38,7 +42,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
-    NEXT_PUBLIC_APP_DOMAIN: z.string().optional(),
+    NEXT_PUBLIC_BASE_URL: z.string(),
   },
 
   /**
@@ -58,7 +62,9 @@ export const env = createEnv({
     SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
     SUPABASE_AUTH_GITHUB_SECRET: process.env.SUPABASE_AUTH_GITHUB_SECRET,
     SUPABASE_AUTH_GITHUB_CLIENT_ID: process.env.SUPABASE_AUTH_GITHUB_CLIENT_ID,
-    NEXT_PUBLIC_APP_DOMAIN: process.env.NEXT_PUBLIC_APP_DOMAIN,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
