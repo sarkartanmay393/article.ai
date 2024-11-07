@@ -1,8 +1,6 @@
 import type Stripe from 'stripe';
 import { type NextRequest, NextResponse } from 'next/server';
 import { stripe } from '~/lib/stripe';
-import { updateUserMetadata } from '~/lib/actions';
-import { createAdminClient } from '~/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,29 +25,16 @@ export async function POST(request: NextRequest) {
         }
       });
 
-    // storing customer id in user metadata when creating checkout session
-    const response = await updateUserMetadata({
-      userId,
-      updateUserMetadata: {
-        stripeCustomerId: checkoutSession.customer as string,
-      }
-    });
+    // const supabase = await createAdminClient();
+    // const { error } = await supabase.from('subscriptions').upsert({
+    //   userId: userId,
+    //   stripeCustomerId: checkoutSession.customer as string,
+    // });
 
-    if (response instanceof Error) {
-      console.log(response.message);
-      return new NextResponse('Internal Server', { status: 500 });
-    }
-
-    const supabase = await createAdminClient();
-    const { error } = await supabase.from('subscriptions').upsert({
-      userId: userId,
-      stripeCustomerId: checkoutSession.customer as string,
-    });
-
-    if (error) {
-      console.log(error);
-      return new NextResponse('Internal Server', { status: 500 });
-    }
+    // if (error) {
+    //   console.log(error);
+    //   return new NextResponse('Internal Server', { status: 500 });
+    // }
 
     return NextResponse.json({ result: checkoutSession, ok: true });
   } catch (error) {

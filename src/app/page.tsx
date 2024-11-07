@@ -6,7 +6,7 @@ import RetroGrid from "~/components/ui/retro-grid";
 export default function Homepage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center">
-      <Card className="w-[350px] shadow-2xl transition-transform hover:scale-105 bg-white z-[100]">
+      <Card className="w-[350px] sm:w-[450px] shadow-2xl transition-transform duration-250 hover:scale-105 bg-white z-[100]">
         <CardHeader>
           <CardTitle className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 animate-fade-in">
             article.ai

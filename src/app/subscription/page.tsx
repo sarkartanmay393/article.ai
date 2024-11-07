@@ -1,10 +1,6 @@
-'use client';
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Check } from "lucide-react"
 import CheckoutButton from "~/components/CheckoutButton"
-import { useContext } from "react";
-import { UserContext } from "~/components/user_context";
 import { PriceIds } from "~/lib/constants";
 
 const plans = [
@@ -41,11 +37,8 @@ const plans = [
 ]
 
 export default function SubscriptionPage() {
-  const userContextValue = useContext(UserContext);
-  const metadata = userContextValue?.user?.user_metadata;
-
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 flex items-center justify-center p-8">
+    <div className="w-full min-h-screen flex items-center justify-center p-8">
       <div className="max-w-6xl w-full h-full space-y-8 flex flex-col">
         <div className="flex flex-col gap-1">
           <h1 className="text-4xl font-bold text-center text-gray-800 mb-4">Subscription Plans</h1>
@@ -70,7 +63,7 @@ export default function SubscriptionPage() {
                 </ul>
               </CardContent>
               <CardFooter className="bg-indigo-100 px-6 py-4">
-                <CheckoutButton priceId={plan.priceId} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150" currentActivePlanId={metadata?.priceId ?? ''} />
+                <CheckoutButton priceId={plan.priceId} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-150" />
               </CardFooter>
             </Card>
           ))}

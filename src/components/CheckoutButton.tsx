@@ -13,9 +13,11 @@ interface CheckoutButtonProps {
   className?: string;
 }
 
-export default function CheckoutButton({ priceId, currentActivePlanId = "", className = "" }: CheckoutButtonProps): JSX.Element {
+export default function CheckoutButton({ priceId, className = "" }: CheckoutButtonProps): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const userContextValue = useContext(UserContext);
+  const currentActivePlanId = userContextValue?.user?.user_metadata?.priceId as string;
+  const isSubscribed = userContextValue?.isUserSubscribed() ?? false;
 
   const handleSubmit = async (): Promise<void> => {
     try {
@@ -25,23 +27,41 @@ export default function CheckoutButton({ priceId, currentActivePlanId = "", clas
         throw new Error("Stripe not initialized");
       }
 
-      const resp = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        body: JSON.stringify({
-          priceId: priceId,
-          userId: userContextValue?.user?.id,
-        }),
-      });
+      if (isSubscribed) {
+        const resp = await fetch("/api/stripe/update", {
+          method: "POST",
+          body: JSON.stringify({
+            newPriceId: priceId,
+            subscriptionId: userContextValue?.user?.user_metadata?.subscriptionId,
+          }),
+        });
 
-      if (!resp.ok) {
-        throw new Error("Failed to create checkout session");
+        if (!resp.ok) {
+          throw new Error("Failed to create checkout session");
+        }
+
+        await resp.json();
+        return;
+      } else {
+        const resp = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          body: JSON.stringify({
+            priceId: priceId,
+            userId: userContextValue?.user?.id,
+          }),
+        });
+
+        if (!resp.ok) {
+          throw new Error("Failed to create checkout session");
+        }
+
+        const respData = await resp.json() as { result: { id: string } };
+
+        await stripe.redirectToCheckout({
+          sessionId: respData?.result?.id,
+        });
       }
 
-      const respData = await resp.json() as { result: { id: string } };
-
-      await stripe.redirectToCheckout({
-        sessionId: respData?.result?.id,
-      });
     } catch (error) {
       console.log(error);
     } finally {
@@ -57,7 +77,7 @@ export default function CheckoutButton({ priceId, currentActivePlanId = "", clas
       variant={currentActivePlanId === priceId ? "outline" : "default"}
       onClick={handleSubmit}
     >
-      {loading ? <Loader2Icon className="animate-spin w-3 h-3 mr-2" /> : null}
+      {loading ? <Loader2Icon className={"animate-spin w-3 h-3 mr-2" + (currentActivePlanId === priceId ? " cursor-not-allowed" : "")} /> : null}
       {Boolean(currentActivePlanId) ? (currentActivePlanId === priceId ? "Subscribed" : "Switch") : "Get Started"}
     </Button>
   );

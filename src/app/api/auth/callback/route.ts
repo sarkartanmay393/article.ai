@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '~/lib/supabase/admin';
 import { createClient } from '~/lib/supabase/server';
+import { decidePermissionsAndQuotaToGive } from '../../webhook/stripe/route';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -17,19 +18,7 @@ export async function GET(request: Request) {
       const { error: userError } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
         user_metadata: {
           isSubscribed: false,
-          permissions: [
-            'max:article-length:200',
-          ],
-          quota: {
-            allowed: {
-              articleGeneration: 0,
-            },
-            consumed: {
-              articleGeneration: 0,
-            },
-            refreshQuotaInterval: 'daily',
-            lastQuotaRefreshedAt: currentDateTimeEpoch,
-          },
+          ...decidePermissionsAndQuotaToGive('')
         }
       });
 

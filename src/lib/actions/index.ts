@@ -93,7 +93,7 @@ export const updateUserMetadata = async ({ userId = '', updateUserMetadata }: { 
     }
 
 
-    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: {
         ...user.user_metadata,
         ...updateUserMetadata,
@@ -103,7 +103,7 @@ export const updateUserMetadata = async ({ userId = '', updateUserMetadata }: { 
     if (error)
       return new Error('Error updating user metadata:', error)
 
-    console.log('User metadata updated:', data);
+    // console.log('User metadata updated:', data);
   } catch (error) {
     console.error('Error updating user metadata:', error);
   }
