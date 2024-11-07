@@ -7,7 +7,6 @@ export default async function AccountPage() {
     throw new Error(error.message);
   }
 
-
   return (
     <div className="w-full flex flex-col items-center justify-center gap-4 p-4 text-center">
       <h1 className="text-2xl font-bold">Hi {data.user.user_metadata.name} 👋</h1>

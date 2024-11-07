@@ -5,6 +5,7 @@ import { createClient } from "~/lib/supabase/client";
 
 import { createContext } from "react";
 import type { User, UserMetadata } from "@supabase/auth-js";
+import { refreshQuota } from "~/lib/actions";
 
 export const UserContext = createContext<{
   user: CustomUser | null;
@@ -20,9 +21,13 @@ export default function UserProvider({ children }: { children: React.ReactNode }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         void supabase.auth.getUser().then(({ data }) => {
-          // console.log('user', user)
           console.log('user metadata added to context.')
           setUser(data.user as CustomUser);
+
+          // refresh quota
+          const refreshInterval = (data?.user as CustomUser).user_metadata.quota.refreshQuotaInterval;
+          const lastQuotaRefreshedAt = (data?.user as CustomUser).user_metadata.quota.lastQuotaRefreshedAt;
+          refreshQuota(refreshInterval, lastQuotaRefreshedAt, data?.user?.id ?? "");
         }).catch((err) => {
           console.error('Error fetching user', err);
           setUser(null);

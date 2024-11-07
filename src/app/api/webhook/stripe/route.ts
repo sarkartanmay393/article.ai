@@ -136,7 +136,7 @@ export function decidePermissionsAndQuotaToGive(priceId: string) {
             articleGeneration: 0,
           },
           refreshQuotaInterval: 'monthly',
-          lastQuotaRefreshedAt: new Date().valueOf(),
+          lastQuotaRefreshedAt: Date.now(),
         },
       };
     case PriceIds.basic:
@@ -150,7 +150,7 @@ export function decidePermissionsAndQuotaToGive(priceId: string) {
             articleGeneration: 0,
           },
           refreshQuotaInterval: 'monthly',
-          lastQuotaRefreshedAt: new Date().valueOf(),
+          lastQuotaRefreshedAt: Date.now(),
         },
       };
     default:
@@ -164,7 +164,7 @@ export function decidePermissionsAndQuotaToGive(priceId: string) {
             articleGeneration: 0,
           },
           refreshQuotaInterval: 'daily',
-          lastQuotaRefreshedAt: new Date().valueOf(),
+          lastQuotaRefreshedAt: Date.now(),
         },
       };
   }

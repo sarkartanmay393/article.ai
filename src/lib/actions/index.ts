@@ -8,10 +8,11 @@ import { openai } from '@ai-sdk/openai';
 import { createStreamableValue } from 'ai/rsc';
 import { createClient } from '~/lib/supabase/server';
 import { articleSchema } from '../schema';
-import type { CustomUser, CustomUserMetadata } from '~/components/user_context';
+import { RefreshQuotaIntevel, type CustomUser, type CustomUserMetadata } from '~/components/user_context';
 import { createAdminClient } from '~/lib/supabase/admin';
 import type Stripe from 'stripe';
 import { stripe } from '~/lib/stripe';
+import { decidePermissionsAndQuotaToGive } from '~/app/api/webhook/stripe/route';
 
 export async function generate({ topic, tone, style, maxLength }: { topic: string, tone: string, style: string, maxLength: number }) {
   'use server';
@@ -112,7 +113,7 @@ export const updateUserMetadata = async ({ userId = '', updateUserMetadata }: { 
 export const verifyCheckoutSession = async (sessionId?: string) => {
   'use server';
   if (!sessionId) return null;
-  
+
   try {
     const checkoutSession: Stripe.Checkout.Session =
       await stripe.checkout.sessions.retrieve(sessionId, {
@@ -127,7 +128,7 @@ export const verifyCheckoutSession = async (sessionId?: string) => {
 
 export const reduceQuotaByOne = async () => {
   'use server'
-  const supabase =await createClient();
+  const supabase = await createClient();
   const userResponse = await supabase.auth.getUser();
   if (userResponse.error) {
     throw new Error('user not found')
@@ -249,3 +250,45 @@ The output should be a structured JSON object containing the article with metada
 - Consider the expertise level of the target audience when writing.
 - Ensure factual accuracy, provide citations or references if necessary.`;
 
+export const refreshQuota = async (refreshInterval: string, lastQuotaRefreshedAt: number, userId: string) => {
+  'use server'
+  const supabaseAdmin = await createAdminClient();
+  const userResponse = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userResponse.error) {
+    throw new Error('user not found')
+  }
+
+  const user = userResponse.data.user;
+
+  switch (refreshInterval) {
+    case RefreshQuotaIntevel.Daily:
+      if (lastQuotaRefreshedAt && Date.now() - lastQuotaRefreshedAt > 24 * 60 * 60 * 1000) {
+        supabaseAdmin.auth.admin.updateUserById(user?.id ?? "", {
+          user_metadata: {
+            ...user?.user_metadata,
+            ...decidePermissionsAndQuotaToGive(user?.user_metadata?.priceId ?? "")
+          }
+        }).then(({ }) => {
+          console.log('quota refreshed')
+        }).catch((err) => {
+          throw new Error('Error refreshing quota', err);
+        });
+      }
+      break;
+    case RefreshQuotaIntevel.Monthly:
+      if (lastQuotaRefreshedAt && Date.now() - lastQuotaRefreshedAt > 30 * 24 * 60 * 60 * 1000)
+        supabaseAdmin.auth.admin.updateUserById(user?.id ?? "", {
+          user_metadata: {
+            ...user?.user_metadata,
+            ...decidePermissionsAndQuotaToGive(user?.user_metadata?.priceId ?? "")
+          }
+        }).then(({ }) => {
+          console.log('quota refreshed')
+        }).catch((err) => {
+          throw new Error('Error refreshing quota', err);
+        });
+      break;
+    default:
+      break;
+  }
+}

@@ -28,14 +28,15 @@ export default function TopBar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='outline' className="flex items-center gap-1">
-                {!userMetadata?.avatar_url ? <User2Icon className="w-8 h-8 rounded-full" /> :
-                  <Image
-                    width={20}
-                    height={20}
-                    className="rounded-full"
-                    src={userMetadata?.avatar_url ?? ''}
-                    alt={userMetadata?.user_name + 'profile-pic' ?? ''}
-                  />}
+                {userMetadata?.avatar_url ? <Image
+                  width={20}
+                  height={20}
+                  className="rounded-full"
+                  src={userMetadata?.avatar_url ?? ''}
+                  alt={userMetadata?.user_name + 'profile-pic' ?? ''}
+                /> :
+                  <User2Icon className="w-8 h-8 rounded-full" />
+                }
                 <span>{userMetadata?.full_name ?? userContextValue?.user?.email ?? 'Not logged in'}</span>
                 {/* <ChevronUp className="ml-auto" /> */}
               </Button>
@@ -50,7 +51,7 @@ export default function TopBar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href='subscription' className={"w-full cursor-pointer" + userMetadata ?'' : 'pointer-events-none opacity-50'}>
+                <Link href='subscription' className={"w-full cursor-pointer" + userMetadata ? '' : 'pointer-events-none opacity-50'}>
                   <span>Subscription</span>
                 </Link>
               </DropdownMenuItem>

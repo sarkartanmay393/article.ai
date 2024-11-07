@@ -44,6 +44,7 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
   const userMetadata = userContextValue?.user?.user_metadata;
   const limitsForCurrentUser = {
     articleLength: Number(userMetadata?.permissions.find((permission) => permission.includes('article-length'))?.split(':')[2] ?? 100),
+    allowedArticleGeneration: Number(userMetadata?.quota.allowed.articleGeneration ?? 0),
   }
 
   // console.log('userContextValue', userMetadata)
@@ -71,16 +72,7 @@ export default function SidePanel({ setArticle, setLoading, loading, setMetadata
         return;
       }
 
-      if (!userMetadata?.isSubscribed) {
-        toast({
-          title: "Not Subscribed",
-          description: "Please subscribe to the service before generating the article.",
-          action: <Link href='/subscription'>Subscribe</Link>,
-        });
-        return;
-      }
-
-      if (userMetadata?.quota.allowed.articleGeneration < 1) {
+      if (limitsForCurrentUser.allowedArticleGeneration < 1) {
         toast({
           title: "Quota Limit Reached",
           description: "Please subscribe to the service before generating the article.",
