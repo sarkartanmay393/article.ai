@@ -24,10 +24,12 @@ export const env = createEnv({
     // DISCORD_CLIENT_ID: z.string(),
     // DISCORD_CLIENT_SECRET: z.string(),
     OPENAI_API_KEY: z.string(),
+
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
     SUPABASE_JWT_SECRET: z.string(),
     SUPABASE_AUTH_GITHUB_SECRET: z.string(),
     SUPABASE_AUTH_GITHUB_CLIENT_ID: z.string(),
+
     STRIPE_SECRET_KEY: z.string(),
     STRIPE_WEBHOOK_SECRET: z.string(),
   },
@@ -41,7 +43,6 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
     NEXT_PUBLIC_BASE_URL: z.string(),
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -62,7 +63,6 @@ export const env = createEnv({
     SUPABASE_AUTH_GITHUB_SECRET: process.env.SUPABASE_AUTH_GITHUB_SECRET,
     SUPABASE_AUTH_GITHUB_CLIENT_ID: process.env.SUPABASE_AUTH_GITHUB_CLIENT_ID,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
